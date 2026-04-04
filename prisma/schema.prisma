@@ -1,0 +1,149 @@
+// Design Ref: §3 Data Model — 7 테이블, Pragmatic Balance 아키텍처
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  password       String?
+  nickname       String
+  provider       String   @default("email")
+  providerId     String?  @map("provider_id")
+  agreeTerms     Boolean  @default(false) @map("agree_terms")
+  agreePrivacy   Boolean  @default(false) @map("agree_privacy")
+  agreeMarketing Boolean  @default(false) @map("agree_marketing")
+  isDeleted      Boolean  @default(false) @map("is_deleted")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  favorites      Favorite[]
+  myPerformances MyPerformance[]
+  boardPosts     BoardPost[]
+  boardComments  BoardComment[]
+
+  @@map("users")
+}
+
+model Performance {
+  id           String   @id @default(uuid())
+  kopisId      String   @unique @map("kopis_id")
+  title        String
+  genre        String
+  startDate    DateTime @map("start_date")
+  endDate      DateTime @map("end_date")
+  venue        String
+  venueAddress String   @default("") @map("venue_address")
+  status       String   @default("upcoming")
+  posterUrl    String?  @map("poster_url")
+  price        String   @default("")
+  minPrice     Int?     @map("min_price")
+  maxPrice     Int?     @map("max_price")
+  ageLimit     String   @default("") @map("age_limit")
+  runtime      String?
+  cast         String?
+  synopsis     String?
+  ticketUrls   Json     @default("[]") @map("ticket_urls")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  favorites      Favorite[]
+  myPerformances MyPerformance[]
+
+  @@index([genre])
+  @@index([status])
+  @@index([startDate])
+  @@index([minPrice])
+  @@index([title])
+  @@map("performances")
+}
+
+model Favorite {
+  id            String      @id @default(uuid())
+  userId        String      @map("user_id")
+  performanceId String      @map("performance_id")
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  performance Performance @relation(fields: [performanceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, performanceId])
+  @@map("favorites")
+}
+
+model MyPerformance {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  performanceId String    @map("performance_id")
+  rating        Int       @default(0)
+  review        String?
+  seatInfo      String?   @map("seat_info")
+  ticketSite    String?   @map("ticket_site")
+  viewedAt      DateTime? @map("viewed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  performance Performance @relation(fields: [performanceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, performanceId])
+  @@map("my_performances")
+}
+
+model BoardPost {
+  id                String   @id @default(uuid())
+  boardType         String   @map("board_type")
+  category          String
+  title             String
+  content           String
+  authorId          String?  @map("author_id")
+  authorNickname    String   @map("author_nickname")
+  anonymousPassword String?  @map("anonymous_password")
+  viewCount         Int      @default(0) @map("view_count")
+  commentCount      Int      @default(0) @map("comment_count")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  author   User?          @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  comments BoardComment[]
+
+  @@index([boardType, category])
+  @@index([createdAt])
+  @@map("board_posts")
+}
+
+model BoardComment {
+  id                String   @id @default(uuid())
+  postId            String   @map("post_id")
+  authorId          String?  @map("author_id")
+  authorNickname    String   @map("author_nickname")
+  content           String
+  anonymousPassword String?  @map("anonymous_password")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  post   BoardPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([postId])
+  @@map("board_comments")
+}
+
+model CommonCode {
+  id        String  @id @default(uuid())
+  group     String
+  code      String
+  label     String
+  sortOrder Int     @default(0) @map("sort_order")
+  isActive  Boolean @default(true) @map("is_active")
+
+  @@unique([group, code])
+  @@index([group])
+  @@map("common_codes")
+}

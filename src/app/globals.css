@@ -1,26 +1,61 @@
 @import "tailwindcss";
 
+/* Design Anchor — 파스텔 민트+핑크 봄 테마 */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-mint: #A8E6CF;
+  --color-mint-light: #D4F5E4;
+  --color-mint-dark: #7EC8A0;
+  --color-pink: #FFB7C5;
+  --color-pink-light: #FFD9E1;
+  --color-pink-dark: #FF8FA3;
+  --color-bg: #FEFEFE;
+  --color-bg-secondary: #F8FAFB;
+  --color-text: #333333;
+  --color-text-secondary: #666666;
+  --color-text-muted: #999999;
+  --color-border: #E8E8E8;
+  --color-border-light: #F0F0F0;
+  --background: #FEFEFE;
+  --foreground: #333333;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-mint: #A8E6CF;
+  --color-mint-light: #D4F5E4;
+  --color-mint-dark: #7EC8A0;
+  --color-pink: #FFB7C5;
+  --color-pink-light: #FFD9E1;
+  --color-pink-dark: #FF8FA3;
+  --color-bg-secondary: #F8FAFB;
+  --color-text-secondary: #666666;
+  --color-text-muted: #999999;
+  --color-border: #E8E8E8;
+  --color-border-light: #F0F0F0;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Pretendard Variable", Pretendard, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* 스크롤바 스타일 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
 }

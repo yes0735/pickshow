@@ -1,0 +1,16 @@
+{
+  "currentFeature": "pickshow",
+  "phase": "completed",
+  "level": "dynamic",
+  "lastUpdated": "2026-04-04T23:45:00+09:00",
+  "features": {
+    "pickshow": {
+      "phase": "completed",
+      "matchRate": 95,
+      "iterationCount": 1,
+      "startedAt": "2026-04-04T17:10:00+09:00",
+      "completedAt": "2026-04-04T23:45:00+09:00",
+      "completedModules": ["module-1", "module-2", "module-3", "module-4", "module-5"]
+    }
+  }
+}
