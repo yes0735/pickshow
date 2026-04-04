@@ -20,7 +20,16 @@ export async function searchPerformances(params: SearchParams) {
   if (params.maxPrice !== undefined) where.maxPrice = { lte: params.maxPrice };
   if (params.ageLimit) where.ageLimit = { contains: params.ageLimit };
   if (params.ticketSite) {
-    where.ticketUrls = { path: ["$[*].name"], string_contains: params.ticketSite };
+    // PostgreSQL JSON 텍스트 검색으로 예매처 필터링
+    const matchedIds = await prisma.$queryRawUnsafe<{ id: string }[]>(
+      `SELECT id FROM performances WHERE ticket_urls::text ILIKE $1`,
+      `%${params.ticketSite}%`
+    );
+    const ids = matchedIds.map((r) => r.id);
+    if (ids.length === 0) {
+      return { data: [], pagination: { cursor: null, hasNext: false, total: 0 } };
+    }
+    where.id = { in: ids };
   }
   if (params.venue) {
     where.venue = { contains: params.venue, mode: "insensitive" };

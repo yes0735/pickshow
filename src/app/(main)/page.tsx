@@ -97,7 +97,7 @@ export default function SearchPage() {
             <div
               className={
                 viewMode === "card"
-                  ? "grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"
+                  ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
                   : "space-y-3"
               }
             >
@@ -116,17 +116,25 @@ export default function SearchPage() {
 
           {/* 카드 뷰 */}
           {!isLoading && viewMode === "card" && (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-              {performances.map((p, i) => (
-                <div key={p.id} className="contents">
-                  <PerformanceCard performance={p} />
-                  {i === 4 && (
-                    <div className="col-span-full">
-                      <AdSlot slotId="search-infeed" format="fluid" />
-                    </div>
-                  )}
+            <div className="space-y-4">
+              {/* 첫 10개 */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {performances.slice(0, 10).map((p) => (
+                  <PerformanceCard key={p.id} performance={p} />
+                ))}
+              </div>
+              {/* 광고 슬롯 */}
+              {performances.length > 10 && (
+                <AdSlot slotId="search-infeed" format="fluid" />
+              )}
+              {/* 나머지 */}
+              {performances.length > 10 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {performances.slice(10).map((p) => (
+                    <PerformanceCard key={p.id} performance={p} />
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
 

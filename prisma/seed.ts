@@ -34,12 +34,13 @@ const commonCodes = [
   { group: "age_limit", code: "15", label: "15세 이상", sortOrder: 3 },
   { group: "age_limit", code: "19", label: "19세 이상", sortOrder: 4 },
 
-  // 예매처
-  { group: "ticket_site", code: "interpark", label: "인터파크", sortOrder: 1 },
-  { group: "ticket_site", code: "yes24", label: "YES24", sortOrder: 2 },
-  { group: "ticket_site", code: "melon", label: "멜론티켓", sortOrder: 3 },
-  { group: "ticket_site", code: "ticketlink", label: "티켓링크", sortOrder: 4 },
-  { group: "ticket_site", code: "auction", label: "옥션티켓", sortOrder: 5 },
+  // 예매처 (KOPIS 실제 데이터 기반)
+  { group: "ticket_site", code: "놀유니버스", label: "놀유니버스", sortOrder: 1 },
+  { group: "ticket_site", code: "네이버N예약", label: "네이버N예약", sortOrder: 2 },
+  { group: "ticket_site", code: "NHN티켓링크", label: "NHN티켓링크", sortOrder: 3 },
+  { group: "ticket_site", code: "예스24", label: "예스24", sortOrder: 4 },
+  { group: "ticket_site", code: "멜론티켓", label: "멜론티켓", sortOrder: 5 },
+  { group: "ticket_site", code: "엔티켓", label: "엔티켓", sortOrder: 6 },
 
   // 게시판 카테고리 (익명)
   { group: "board_anonymous", code: "promotion", label: "홍보", sortOrder: 1 },
