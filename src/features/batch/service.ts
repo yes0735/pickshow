@@ -12,12 +12,20 @@ import {
 
 export async function syncPerformancesFromKopis() {
   const today = new Date();
-  const stdate = formatKopisDate(addDays(today, -30)); // 30일 전부터
-  const eddate = formatKopisDate(addDays(today, 90)); // 90일 후까지
+  const stdate = formatKopisDate(today); // 오늘부터
+  const eddate = formatKopisDate(addDays(today, 180)); // 180일 후까지
 
   let totalSynced = 0;
+  let totalSkipped = 0;
   let page = 1;
-  const maxPages = 10;
+  const maxPages = 20;
+
+  // 기존 DB의 kopisId Set 로드 (빠른 중복 체크)
+  const existingKopisIds = new Set(
+    (await prisma.performance.findMany({ select: { kopisId: true } })).map(
+      (p) => p.kopisId
+    )
+  );
 
   while (page <= maxPages) {
     const list = await fetchPerformanceList({
@@ -30,6 +38,12 @@ export async function syncPerformancesFromKopis() {
     if (list.length === 0) break;
 
     for (const item of list) {
+      // 증분 처리: 이미 DB에 있으면 스킵 (상세 API 호출 안 함)
+      if (existingKopisIds.has(item.mt20id)) {
+        totalSkipped++;
+        continue;
+      }
+
       try {
         const detail = await fetchPerformanceDetail(item.mt20id);
         if (!detail) continue;
@@ -92,7 +106,7 @@ export async function syncPerformancesFromKopis() {
   // 공연상태 자동 업데이트: 시작일이 지난 공연 → 공연중, 종료일이 지난 공연 → 공연완료
   await updatePerformanceStatuses();
 
-  return { totalSynced };
+  return { totalSynced, totalSkipped };
 }
 
 async function updatePerformanceStatuses() {

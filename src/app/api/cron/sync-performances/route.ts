@@ -16,7 +16,11 @@ export async function POST(request: NextRequest) {
   try {
     const result = await syncPerformancesFromKopis();
     return NextResponse.json({
-      data: { message: `Synced ${result.totalSynced} performances` },
+      data: {
+        message: `Synced ${result.totalSynced} new, skipped ${result.totalSkipped} existing`,
+        synced: result.totalSynced,
+        skipped: result.totalSkipped,
+      },
     });
   } catch (e) {
     console.error("Batch sync failed:", e);
