@@ -45,6 +45,7 @@ const commonCodes = [
   { group: "ticket_site", code: "나눔티켓", label: "나눔티켓", sortOrder: 8 },
   { group: "ticket_site", code: "엔티켓", label: "엔티켓", sortOrder: 9 },
   { group: "ticket_site", code: "쿠팡", label: "쿠팡", sortOrder: 10 },
+  { group: "ticket_site", code: "etc", label: "기타", sortOrder: 99 },
 
   // 게시판 카테고리 (익명)
   { group: "board_anonymous", code: "promotion", label: "홍보", sortOrder: 1 },

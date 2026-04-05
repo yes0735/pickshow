@@ -20,11 +20,37 @@ export async function searchPerformances(params: SearchParams) {
   if (params.maxPrice !== undefined) where.maxPrice = { lte: params.maxPrice };
   if (params.ageLimit) where.ageLimit = { contains: params.ageLimit };
   if (params.ticketSite) {
-    // PostgreSQL JSON 텍스트 검색으로 예매처 필터링
-    const matchedIds = await prisma.$queryRawUnsafe<{ id: string }[]>(
-      `SELECT id FROM performances WHERE ticket_urls::text ILIKE $1`,
-      `%${params.ticketSite}%`
-    );
+    const TOP_TICKET_SITES = [
+      "놀유니버스",
+      "네이버N예약",
+      "NHN티켓링크",
+      "예스24",
+      "멜론티켓",
+      "플레이티켓",
+      "타임티켓",
+      "나눔티켓",
+      "엔티켓",
+      "쿠팡",
+    ];
+
+    let matchedIds: { id: string }[];
+    if (params.ticketSite === "etc") {
+      // 기타: 상위 10개 예매처가 포함되지 않은 공연
+      const notLikeClause = TOP_TICKET_SITES.map(
+        (_, i) => `ticket_urls::text NOT ILIKE $${i + 1}`
+      ).join(" AND ");
+      matchedIds = await prisma.$queryRawUnsafe<{ id: string }[]>(
+        `SELECT id FROM performances WHERE ${notLikeClause}`,
+        ...TOP_TICKET_SITES.map((s) => `%${s}%`)
+      );
+    } else {
+      // 특정 예매처: ILIKE로 포함 여부 검색
+      matchedIds = await prisma.$queryRawUnsafe<{ id: string }[]>(
+        `SELECT id FROM performances WHERE ticket_urls::text ILIKE $1`,
+        `%${params.ticketSite}%`
+      );
+    }
+
     const ids = matchedIds.map((r) => r.id);
     if (ids.length === 0) {
       return { data: [], pagination: { cursor: null, hasNext: false, total: 0 } };
