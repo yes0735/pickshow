@@ -10,6 +10,111 @@ import {
   parsePriceRange,
 } from "@/lib/kopis";
 
+// 전체 동기화 — 과거 1년 ~ 미래 1년 범위 (수동 실행 전용)
+export async function fullSyncPerformancesFromKopis(options?: {
+  daysBack?: number;
+  daysForward?: number;
+  maxPages?: number;
+}) {
+  const daysBack = options?.daysBack ?? 365;
+  const daysForward = options?.daysForward ?? 365;
+  const maxPages = options?.maxPages ?? 100;
+
+  const today = new Date();
+
+  let totalSynced = 0;
+  let totalSkipped = 0;
+  let totalErrors = 0;
+
+  const existingKopisIds = new Set(
+    (await prisma.performance.findMany({ select: { kopisId: true } })).map(
+      (p) => p.kopisId
+    )
+  );
+
+  // 3개월 단위로 기간을 쪼개서 조회 (KOPIS API 한 번에 너무 많이 조회 시 제한)
+  const chunkMonths = 3;
+  const totalMonths = Math.ceil((daysBack + daysForward) / 30);
+  const chunks = Math.ceil(totalMonths / chunkMonths);
+
+  for (let c = 0; c < chunks; c++) {
+    const chunkStart = addDays(today, -daysBack + c * chunkMonths * 30);
+    const chunkEnd = addDays(today, -daysBack + (c + 1) * chunkMonths * 30);
+    const stdate = formatKopisDate(chunkStart);
+    const eddate = formatKopisDate(chunkEnd);
+
+    let page = 1;
+    while (page <= maxPages) {
+      const list = await fetchPerformanceList({
+        stdate,
+        eddate,
+        cpage: page,
+        rows: 100,
+      });
+
+      if (list.length === 0) break;
+
+      for (const item of list) {
+        if (existingKopisIds.has(item.mt20id)) {
+          totalSkipped++;
+          continue;
+        }
+
+        try {
+          const detail = await fetchPerformanceDetail(item.mt20id);
+          if (!detail) {
+            totalErrors++;
+            continue;
+          }
+
+          const priceRange = parsePriceRange(detail.pcseguidance);
+          const ticketUrls = detail.relates.relate
+            .filter((r) => r.relateurl)
+            .map((r) => ({ name: r.relatenm, url: r.relateurl }));
+
+          await prisma.performance.create({
+            data: {
+              kopisId: item.mt20id,
+              title: detail.prfnm,
+              genre: mapGenreToCode(detail.genrenm),
+              startDate: parseKopisDate(detail.prfpdfrom),
+              endDate: parseKopisDate(detail.prfpdto),
+              venue: detail.fcltynm,
+              venueAddress: detail.area,
+              status: mapStatusToCode(detail.prfstate),
+              posterUrl: detail.poster || null,
+              price: detail.pcseguidance,
+              minPrice: priceRange.min,
+              maxPrice: priceRange.max,
+              ageLimit: detail.prfage,
+              runtime: detail.prfruntime || null,
+              cast: detail.prfcast || null,
+              synopsis: detail.sty || null,
+              ticketUrls,
+            },
+          });
+
+          existingKopisIds.add(item.mt20id);
+          totalSynced++;
+        } catch (e) {
+          console.error(`Failed to sync ${item.mt20id}:`, e);
+          totalErrors++;
+        }
+      }
+
+      page++;
+    }
+
+    console.log(
+      `[chunk ${c + 1}/${chunks}] ${stdate}~${eddate} — synced: ${totalSynced}, skipped: ${totalSkipped}`
+    );
+  }
+
+  await updatePerformanceStatuses();
+
+  return { totalSynced, totalSkipped, totalErrors };
+}
+
 export async function syncPerformancesFromKopis() {
   const today = new Date();
   const stdate = formatKopisDate(today); // 오늘부터
