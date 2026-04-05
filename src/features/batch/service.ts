@@ -109,11 +109,11 @@ export async function syncPerformancesFromKopis() {
   return { totalSynced, totalSkipped };
 }
 
-async function updatePerformanceStatuses() {
+export async function updatePerformanceStatuses() {
   const now = new Date();
 
   // 공연예정 → 공연중 (시작일 <= 오늘 && 종료일 >= 오늘)
-  await prisma.performance.updateMany({
+  const toOngoing = await prisma.performance.updateMany({
     where: {
       status: "upcoming",
       startDate: { lte: now },
@@ -123,13 +123,18 @@ async function updatePerformanceStatuses() {
   });
 
   // 공연중/공연예정 → 공연완료 (종료일 < 오늘)
-  await prisma.performance.updateMany({
+  const toCompleted = await prisma.performance.updateMany({
     where: {
       status: { in: ["upcoming", "ongoing"] },
       endDate: { lt: now },
     },
     data: { status: "completed" },
   });
+
+  return {
+    toOngoing: toOngoing.count,
+    toCompleted: toCompleted.count,
+  };
 }
 
 function formatKopisDate(date: Date): string {
