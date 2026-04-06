@@ -28,7 +28,11 @@ export const useSearchStore = create<SearchStore>((set) => ({
     })),
   setSort: (sort) => set({ sort }),
   setViewMode: (viewMode) => set({ viewMode }),
-  resetFilters: () => set({ filters: {}, sort: "date" }),
+  resetFilters: () =>
+    set((state) => ({
+      filters: { q: state.filters.q },
+      sort: "date",
+    })),
 }));
 
 // Build query string from filters
