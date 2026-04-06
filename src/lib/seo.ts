@@ -17,6 +17,7 @@ export function getBaseMetadata(): Metadata {
       siteName: SITE_NAME,
       url: SITE_URL,
       locale: "ko_KR",
+      images: [{ url: `${SITE_URL}/og`, width: 1200, height: 630, alt: SITE_NAME }],
     },
     robots: {
       index: true,
@@ -92,7 +93,14 @@ export function generatePerformanceMetadata(performance: {
     openGraph: {
       title: `${performance.title} 예매처 — ${SITE_NAME}`,
       description,
-      images: performance.posterUrl ? [performance.posterUrl] : [],
+      images: [
+        {
+          url: `${SITE_URL}/og/performance/${performance.id}`,
+          width: 1200,
+          height: 630,
+          alt: performance.title,
+        },
+      ],
       url: `${SITE_URL}/performance/${performance.id}`,
       type: "website",
     },
