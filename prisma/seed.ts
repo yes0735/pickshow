@@ -17,8 +17,8 @@ const commonCodes = [
   { group: "genre", code: "etc", label: "기타", sortOrder: 7 },
 
   // 공연상태
-  { group: "status", code: "upcoming", label: "공연예정", sortOrder: 1 },
-  { group: "status", code: "ongoing", label: "공연중", sortOrder: 2 },
+  { group: "status", code: "ongoing", label: "공연중", sortOrder: 1 },
+  { group: "status", code: "upcoming", label: "공연예정", sortOrder: 2 },
   { group: "status", code: "completed", label: "공연완료", sortOrder: 3 },
 
   // 가격대
