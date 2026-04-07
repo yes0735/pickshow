@@ -43,8 +43,24 @@ export default function Header() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="공연명, 출연진 검색"
-              className="w-full h-10 pl-4 pr-10 rounded-full border border-border bg-bg-secondary text-sm focus:outline-none focus:border-mint transition-colors"
+              className="w-full h-10 pl-4 pr-20 rounded-full border border-border bg-bg-secondary text-sm focus:outline-none focus:border-mint transition-colors"
             />
+            {input && (
+              <button
+                type="button"
+                aria-label="검색어 삭제"
+                onClick={() => {
+                  setInput("");
+                  setFilter("q", undefined);
+                }}
+                className="absolute right-10 top-1/2 -translate-y-1/2 text-text-muted hover:text-foreground"
+              >
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.15" />
+                  <path d="M15 9l-6 6M9 9l6 6" />
+                </svg>
+              </button>
+            )}
             <button
               type="submit"
               aria-label="검색"
