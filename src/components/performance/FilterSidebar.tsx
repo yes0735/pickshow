@@ -74,7 +74,7 @@ export default function FilterSidebar() {
             active={!!(filters.startDate || filters.endDate)}
           >
             {/* 데스크톱 사이드바(좁음): 2줄, 모바일 바텀시트(넓음): 1줄 */}
-            <div className="grid grid-cols-1 lg:grid-cols-1 gap-1.5">
+            <div className="grid grid-cols-1 gap-1.5">
               <div className="relative">
                 <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-text-muted pointer-events-none">시작</span>
                 <input
@@ -83,8 +83,11 @@ export default function FilterSidebar() {
                   value={filters.startDate ?? ""}
                   onClick={(e) => (e.target as HTMLInputElement).showPicker()}
                   onChange={(e) => setFilter("startDate", e.target.value || undefined)}
-                  className="w-full h-9 pl-9 pr-2 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark cursor-pointer"
+                  className="w-full h-9 pl-9 pr-7 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark cursor-pointer"
                 />
+                {filters.startDate && (
+                  <ClearButton onClick={() => setFilter("startDate", undefined)} />
+                )}
               </div>
               <div className="relative">
                 <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-text-muted pointer-events-none">종료</span>
@@ -94,8 +97,11 @@ export default function FilterSidebar() {
                   value={filters.endDate ?? ""}
                   onClick={(e) => (e.target as HTMLInputElement).showPicker()}
                   onChange={(e) => setFilter("endDate", e.target.value || undefined)}
-                  className="w-full h-9 pl-9 pr-2 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark cursor-pointer"
+                  className="w-full h-9 pl-9 pr-7 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark cursor-pointer"
                 />
+                {filters.endDate && (
+                  <ClearButton onClick={() => setFilter("endDate", undefined)} />
+                )}
               </div>
             </div>
           </AccordionSection>
@@ -177,14 +183,19 @@ export default function FilterSidebar() {
 
           {/* 공연장소 */}
           <AccordionSection title="공연장소" active={!!filters.venue}>
-            <input
-              type="text"
-              placeholder="장소명을 입력하세요"
-              aria-label="공연장소 검색"
-              value={filters.venue ?? ""}
-              onChange={(e) => setFilter("venue", e.target.value || undefined)}
-              className="w-full h-9 px-2.5 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="장소명을 입력하세요"
+                aria-label="공연장소 검색"
+                value={filters.venue ?? ""}
+                onChange={(e) => setFilter("venue", e.target.value || undefined)}
+                className="w-full h-9 px-2.5 pr-7 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark"
+              />
+              {filters.venue && (
+                <ClearButton onClick={() => setFilter("venue", undefined)} />
+              )}
+            </div>
           </AccordionSection>
         </div>
       </div>
@@ -231,5 +242,21 @@ function AccordionSection({
       </button>
       {open && <div className="pb-3">{children}</div>}
     </div>
+  );
+}
+
+function ClearButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-label="삭제"
+      onClick={onClick}
+      className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-foreground transition-colors"
+    >
+      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.12" />
+        <path d="M15 9l-6 6M9 9l6 6" />
+      </svg>
+    </button>
   );
 }
