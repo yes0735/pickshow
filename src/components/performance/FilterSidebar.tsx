@@ -57,12 +57,14 @@ export default function FilterSidebar() {
           <div className="space-y-2">
             <input
               type="date"
+              aria-label="시작일"
               value={filters.startDate ?? ""}
               onChange={(e) => setFilter("startDate", e.target.value || undefined)}
               className="w-full h-8 px-2 rounded border border-border text-xs focus:outline-none focus:border-mint"
             />
             <input
               type="date"
+              aria-label="종료일"
               value={filters.endDate ?? ""}
               onChange={(e) => setFilter("endDate", e.target.value || undefined)}
               className="w-full h-8 px-2 rounded border border-border text-xs focus:outline-none focus:border-mint"
@@ -76,6 +78,7 @@ export default function FilterSidebar() {
             <input
               type="number"
               placeholder="최소"
+              aria-label="최소 가격"
               value={filters.minPrice ?? ""}
               onChange={(e) =>
                 setFilter("minPrice", e.target.value ? Number(e.target.value) : undefined)
@@ -86,6 +89,7 @@ export default function FilterSidebar() {
             <input
               type="number"
               placeholder="최대"
+              aria-label="최대 가격"
               value={filters.maxPrice ?? ""}
               onChange={(e) =>
                 setFilter("maxPrice", e.target.value ? Number(e.target.value) : undefined)
@@ -131,6 +135,7 @@ export default function FilterSidebar() {
           <input
             type="text"
             placeholder="장소 검색"
+            aria-label="공연장소 검색"
             value={filters.venue ?? ""}
             onChange={(e) => setFilter("venue", e.target.value || undefined)}
             className="w-full h-8 px-2 rounded border border-border text-xs focus:outline-none focus:border-mint"

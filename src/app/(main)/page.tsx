@@ -45,7 +45,7 @@ export default function SearchPage() {
             <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6 max-h-[80vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="font-semibold">필터</h2>
-                <button onClick={() => setFilterOpen(false)} className="text-text-muted">
+                <button onClick={() => setFilterOpen(false)} aria-label="필터 닫기" className="text-text-muted">
                   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path d="M18 6 6 18M6 6l12 12" />
                   </svg>

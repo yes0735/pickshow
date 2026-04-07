@@ -11,6 +11,7 @@ export default function ViewToggle() {
     <div className="flex rounded-lg border border-border overflow-hidden">
       <button
         onClick={() => setViewMode("card")}
+        aria-label="카드 뷰"
         className={cn(
           "px-3 py-1.5 text-xs transition-colors",
           viewMode === "card"
@@ -27,6 +28,7 @@ export default function ViewToggle() {
       </button>
       <button
         onClick={() => setViewMode("list")}
+        aria-label="리스트 뷰"
         className={cn(
           "px-3 py-1.5 text-xs transition-colors",
           viewMode === "list"

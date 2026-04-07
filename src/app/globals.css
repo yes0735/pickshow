@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
-/* Design Anchor — 파스텔 민트+핑크 봄 테마 */
+/* Design Anchor — 파스텔 봄 테마 (WCAG AA 명도대비 보정) */
 :root {
   --color-mint: #A8E6CF;
   --color-mint-light: #D4F5E4;
-  --color-mint-dark: #7EC8A0;
+  --color-mint-dark: #1B7A4A;
   --color-pink: #FFB7C5;
-  --color-pink-light: #FFD9E1;
-  --color-pink-dark: #FF8FA3;
+  --color-pink-light: #FFF0F3;
+  --color-pink-dark: #C4325A;
   --color-bg: #FEFEFE;
   --color-bg-secondary: #F8FAFB;
   --color-text: #333333;
   --color-text-secondary: #666666;
-  --color-text-muted: #999999;
+  --color-text-muted: #737373;
   --color-border: #E8E8E8;
   --color-border-light: #F0F0F0;
   --background: #FEFEFE;
@@ -24,13 +24,13 @@
   --color-foreground: var(--foreground);
   --color-mint: #A8E6CF;
   --color-mint-light: #D4F5E4;
-  --color-mint-dark: #7EC8A0;
+  --color-mint-dark: #1B7A4A;
   --color-pink: #FFB7C5;
-  --color-pink-light: #FFD9E1;
-  --color-pink-dark: #FF8FA3;
+  --color-pink-light: #FFF0F3;
+  --color-pink-dark: #C4325A;
   --color-bg-secondary: #F8FAFB;
   --color-text-secondary: #666666;
-  --color-text-muted: #999999;
+  --color-text-muted: #737373;
   --color-border: #E8E8E8;
   --color-border-light: #F0F0F0;
 }
