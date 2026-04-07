@@ -14,8 +14,10 @@ export async function searchPerformances(params: SearchParams) {
   }
   if (params.genre) where.genre = params.genre;
   if (params.status) where.status = params.status;
-  if (params.startDate) where.startDate = { gte: new Date(params.startDate) };
-  if (params.endDate) where.endDate = { lte: new Date(params.endDate) };
+  // 시작일: 이 날짜 이후에도 관람 가능한 공연 (endDate >= 시작일)
+  if (params.startDate) where.endDate = { ...(where.endDate as object), gte: new Date(params.startDate) };
+  // 종료일: 이 날짜 이전에 시작하는 공연 (startDate <= 종료일)
+  if (params.endDate) where.startDate = { ...(where.startDate as object), lte: new Date(params.endDate) };
   if (params.minPrice !== undefined) where.minPrice = { gte: params.minPrice };
   if (params.maxPrice !== undefined) where.maxPrice = { lte: params.maxPrice };
   if (params.ageLimit) where.ageLimit = { contains: params.ageLimit };

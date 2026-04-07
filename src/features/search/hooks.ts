@@ -18,9 +18,11 @@ interface SearchStore {
   resetFilters: () => void;
 }
 
-// 기본 필터: 공연중
+// 기본 필터: 공연중 + 시작일=오늘
+const today = () => new Date().toISOString().split("T")[0];
 const defaultFilters = (): SearchFilters => ({
   status: "ongoing",
+  startDate: today(),
 });
 
 export const useSearchStore = create<SearchStore>((set) => ({
