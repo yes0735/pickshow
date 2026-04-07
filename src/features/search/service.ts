@@ -61,23 +61,55 @@ export async function searchPerformances(params: SearchParams) {
     where.venue = { contains: params.venue, mode: "insensitive" };
   }
 
+  // 날짜순: 공연상태(공연중→공연예정→공연완료) + 시작일 가까운 순
+  // Prisma는 커스텀 status 순서를 직접 지원하지 않으므로
+  // status별로 분리 조회 후 합치는 방식 사용
   const orderBy: Prisma.PerformanceOrderByWithRelationInput =
     params.sort === "price_asc"
       ? { minPrice: { sort: "asc", nulls: "last" } }
       : params.sort === "price_desc"
         ? { maxPrice: { sort: "desc", nulls: "last" } }
-        : { startDate: "desc" };
+        : { startDate: "asc" };
 
   const take = params.limit + 1;
   const cursorObj = params.cursor ? { id: params.cursor } : undefined;
 
-  const items = await prisma.performance.findMany({
-    where,
-    orderBy,
-    take,
-    cursor: cursorObj,
-    skip: cursorObj ? 1 : 0,
-  });
+  let items;
+
+  if (params.sort === "date") {
+    // 공연중 → 공연예정 → 공연완료 순으로 조회 후 합치기
+    const statusOrder = ["ongoing", "upcoming", "completed"];
+    const allItems = [];
+
+    for (const status of statusOrder) {
+      const statusWhere = { ...where, status };
+      const statusItems = await prisma.performance.findMany({
+        where: statusWhere,
+        orderBy: status === "ongoing"
+          ? { startDate: "desc" }  // 공연중: 최근 시작 먼저
+          : status === "upcoming"
+            ? { startDate: "asc" }  // 공연예정: 가까운 날짜 먼저
+            : { endDate: "desc" },  // 완료: 최근 끝난 순
+      });
+      allItems.push(...statusItems);
+    }
+
+    // 커서 기반 슬라이싱
+    let startIdx = 0;
+    if (cursorObj) {
+      const cursorIdx = allItems.findIndex((i) => i.id === cursorObj.id);
+      startIdx = cursorIdx >= 0 ? cursorIdx + 1 : 0;
+    }
+    items = allItems.slice(startIdx, startIdx + take);
+  } else {
+    items = await prisma.performance.findMany({
+      where,
+      orderBy,
+      take,
+      cursor: cursorObj,
+      skip: cursorObj ? 1 : 0,
+    });
+  }
 
   const hasNext = items.length > params.limit;
   const data = hasNext ? items.slice(0, params.limit) : items;
