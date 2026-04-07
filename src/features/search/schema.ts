@@ -12,7 +12,7 @@ export const searchParamsSchema = z.object({
   ageLimit: z.string().optional(),
   ticketSite: z.string().optional(),
   venue: z.string().optional(),
-  sort: z.enum(["date", "price_asc", "price_desc"]).optional().default("date"),
+  sort: z.enum(["title", "price_asc", "price_desc"]).optional().default("title"),
   cursor: z.string().optional(),
   limit: z.coerce.number().min(1).max(50).optional().default(10),
 });

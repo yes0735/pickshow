@@ -36,6 +36,6 @@ export interface CommonCode {
   isActive: boolean;
 }
 
-export type SortOption = "date" | "price_asc" | "price_desc";
+export type SortOption = "title" | "price_asc" | "price_desc";
 
 export type ViewMode = "card" | "list";

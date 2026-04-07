@@ -18,9 +18,14 @@ interface SearchStore {
   resetFilters: () => void;
 }
 
+// 기본 필터: 공연중
+const defaultFilters = (): SearchFilters => ({
+  status: "ongoing",
+});
+
 export const useSearchStore = create<SearchStore>((set) => ({
-  filters: {},
-  sort: "date",
+  filters: defaultFilters(),
+  sort: "title",
   viewMode: "card",
   setFilter: (key, value) =>
     set((state) => ({
@@ -30,8 +35,8 @@ export const useSearchStore = create<SearchStore>((set) => ({
   setViewMode: (viewMode) => set({ viewMode }),
   resetFilters: () =>
     set((state) => ({
-      filters: { q: state.filters.q },
-      sort: "date",
+      filters: { q: state.filters.q, ...defaultFilters() },
+      sort: "title",
     })),
 }));
 
