@@ -7,6 +7,7 @@ import type { Performance } from "@/types/performance";
 import { formatDateRange, formatPriceRange } from "@/lib/utils";
 import TicketLinkList from "./TicketLinkList";
 import FavoriteButton from "./FavoriteButton";
+import StatusBadge from "./StatusBadge";
 
 interface Props {
   performance: Performance;
@@ -94,9 +95,7 @@ export default function PerformanceModal({ performance }: Props) {
             <div className="flex items-start gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-mint-light text-mint-dark font-medium">
-                    {mapStatus(performance.status)}
-                  </span>
+                  <StatusBadge status={performance.status} size="md" />
                   <span className="text-[11px] text-text-muted">{performance.genre}</span>
                 </div>
                 <h1 className="text-lg sm:text-xl font-bold leading-tight">
@@ -183,17 +182,4 @@ function InfoItem({
       </p>
     </div>
   );
-}
-
-function mapStatus(status: string): string {
-  switch (status) {
-    case "upcoming":
-      return "공연예정";
-    case "ongoing":
-      return "공연중";
-    case "completed":
-      return "공연완료";
-    default:
-      return status;
-  }
 }

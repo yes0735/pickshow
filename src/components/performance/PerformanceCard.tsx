@@ -5,26 +5,13 @@ import Link from "next/link";
 import type { Performance } from "@/types/performance";
 import { formatDateRange, formatPriceRange } from "@/lib/utils";
 import FavoriteButton from "./FavoriteButton";
+import StatusBadge from "./StatusBadge";
 
 interface Props {
   performance: Performance;
 }
 
 export default function PerformanceCard({ performance }: Props) {
-  const statusColor =
-    performance.status === "ongoing"
-      ? "bg-mint text-white"
-      : performance.status === "upcoming"
-        ? "bg-pink-light text-pink-dark"
-        : "bg-border-light text-text-muted";
-
-  const statusLabel =
-    performance.status === "ongoing"
-      ? "공연중"
-      : performance.status === "upcoming"
-        ? "공연예정"
-        : "공연완료";
-
   return (
     <Link
       href={`/performance/${performance.id}`}
@@ -43,11 +30,9 @@ export default function PerformanceCard({ performance }: Props) {
             포스터 없음
           </div>
         )}
-        <span
-          className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-medium ${statusColor}`}
-        >
-          {statusLabel}
-        </span>
+        <div className="absolute top-2 left-2">
+          <StatusBadge status={performance.status} />
+        </div>
         <div className="absolute top-2 right-2">
           <FavoriteButton performanceId={performance.id} />
         </div>
