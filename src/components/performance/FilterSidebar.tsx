@@ -1,186 +1,232 @@
-// Design Ref: §5.4 — 7종 필터 UI (데스크톱: 사이드바, 모바일: 시트)
+// 필터 사이드바 — 아코디언 섹션 + 활성 필터 뱃지
 "use client";
 
+import { useState } from "react";
 import { useSearchStore, useCommonCodes } from "@/features/search/hooks";
 
 export default function FilterSidebar() {
   const { filters, setFilter, resetFilters } = useSearchStore();
 
-  const { data: genres } = useCommonCodes("genre");
   const { data: statuses } = useCommonCodes("status");
   const { data: ageLimits } = useCommonCodes("age_limit");
   const { data: ticketSites } = useCommonCodes("ticket_site");
 
+  // 적용된 필터 수 계산
+  const activeCount = [
+    filters.status,
+    filters.startDate,
+    filters.endDate,
+    filters.minPrice,
+    filters.maxPrice,
+    filters.ageLimit,
+    filters.ticketSite,
+    filters.venue,
+  ].filter(Boolean).length;
+
   return (
     <aside className="w-full lg:w-60 flex-shrink-0">
-      <div className="sticky top-20 space-y-5">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-sm">검색 필터</h2>
-          <button
-            onClick={resetFilters}
-            className="text-xs text-text-muted hover:text-pink-dark transition-colors"
-          >
-            초기화
-          </button>
+      <div className="sticky top-20">
+        {/* 헤더 */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <h2 className="font-semibold text-sm">필터</h2>
+            {activeCount > 0 && (
+              <span className="w-5 h-5 flex items-center justify-center rounded-full bg-mint-dark text-white text-[10px] font-bold">
+                {activeCount}
+              </span>
+            )}
+          </div>
+          {activeCount > 0 && (
+            <button
+              onClick={resetFilters}
+              className="text-xs text-text-muted hover:text-pink-dark transition-colors"
+            >
+              전체 초기화
+            </button>
+          )}
         </div>
 
-        {/* 장르 */}
-        <FilterSection title="장르">
-          {genres?.map((g) => (
-            <FilterCheckbox
-              key={g.code}
-              label={g.label}
-              checked={filters.genre === g.code}
-              onChange={() =>
-                setFilter("genre", filters.genre === g.code ? undefined : g.code)
-              }
-            />
-          ))}
-        </FilterSection>
+        <div className="space-y-1">
+          {/* 공연상태 */}
+          <AccordionSection title="공연상태" active={!!filters.status}>
+            <div className="flex flex-wrap gap-1.5">
+              {statuses?.map((s) => (
+                <button
+                  key={s.code}
+                  onClick={() =>
+                    setFilter("status", filters.status === s.code ? undefined : s.code)
+                  }
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    filters.status === s.code
+                      ? "bg-mint-dark text-white"
+                      : "bg-bg-secondary text-text-secondary hover:bg-border-light"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </AccordionSection>
 
-        {/* 공연상태 */}
-        <FilterSection title="공연상태">
-          {statuses?.map((s) => (
-            <FilterCheckbox
-              key={s.code}
-              label={s.label}
-              checked={filters.status === s.code}
-              onChange={() =>
-                setFilter("status", filters.status === s.code ? undefined : s.code)
-              }
-            />
-          ))}
-        </FilterSection>
+          {/* 공연기간 */}
+          <AccordionSection
+            title="공연기간"
+            active={!!(filters.startDate || filters.endDate)}
+          >
+            <div className="space-y-2">
+              <div>
+                <span className="text-[10px] text-text-muted block mb-1">시작일</span>
+                <input
+                  type="date"
+                  aria-label="시작일"
+                  value={filters.startDate ?? ""}
+                  onChange={(e) => setFilter("startDate", e.target.value || undefined)}
+                  className="w-full h-9 px-2.5 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark"
+                />
+              </div>
+              <div>
+                <span className="text-[10px] text-text-muted block mb-1">종료일</span>
+                <input
+                  type="date"
+                  aria-label="종료일"
+                  value={filters.endDate ?? ""}
+                  onChange={(e) => setFilter("endDate", e.target.value || undefined)}
+                  className="w-full h-9 px-2.5 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark"
+                />
+              </div>
+            </div>
+          </AccordionSection>
 
-        {/* 공연기간 */}
-        <FilterSection title="공연기간">
-          <div className="space-y-2">
+          {/* 가격대 */}
+          <AccordionSection
+            title="가격대"
+            active={filters.minPrice !== undefined || filters.maxPrice !== undefined}
+          >
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                placeholder="최소"
+                aria-label="최소 가격"
+                value={filters.minPrice ?? ""}
+                onChange={(e) =>
+                  setFilter("minPrice", e.target.value ? Number(e.target.value) : undefined)
+                }
+                className="w-full h-9 px-2.5 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark"
+              />
+              <span className="text-text-muted text-xs flex-shrink-0">~</span>
+              <input
+                type="number"
+                placeholder="최대"
+                aria-label="최대 가격"
+                value={filters.maxPrice ?? ""}
+                onChange={(e) =>
+                  setFilter("maxPrice", e.target.value ? Number(e.target.value) : undefined)
+                }
+                className="w-full h-9 px-2.5 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark"
+              />
+            </div>
+          </AccordionSection>
+
+          {/* 관람연령 */}
+          <AccordionSection title="관람연령" active={!!filters.ageLimit}>
+            <div className="flex flex-wrap gap-1.5">
+              {ageLimits?.map((a) => (
+                <button
+                  key={a.code}
+                  onClick={() =>
+                    setFilter("ageLimit", filters.ageLimit === a.code ? undefined : a.code)
+                  }
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    filters.ageLimit === a.code
+                      ? "bg-mint-dark text-white"
+                      : "bg-bg-secondary text-text-secondary hover:bg-border-light"
+                  }`}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+          </AccordionSection>
+
+          {/* 예매처 */}
+          <AccordionSection title="예매처" active={!!filters.ticketSite}>
+            <div className="flex flex-wrap gap-1.5">
+              {ticketSites?.map((t) => (
+                <button
+                  key={t.code}
+                  onClick={() =>
+                    setFilter(
+                      "ticketSite",
+                      filters.ticketSite === t.code ? undefined : t.code
+                    )
+                  }
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    filters.ticketSite === t.code
+                      ? "bg-mint-dark text-white"
+                      : "bg-bg-secondary text-text-secondary hover:bg-border-light"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </AccordionSection>
+
+          {/* 공연장소 */}
+          <AccordionSection title="공연장소" active={!!filters.venue}>
             <input
-              type="date"
-              aria-label="시작일"
-              value={filters.startDate ?? ""}
-              onChange={(e) => setFilter("startDate", e.target.value || undefined)}
-              className="w-full h-8 px-2 rounded border border-border text-xs focus:outline-none focus:border-mint"
+              type="text"
+              placeholder="장소명을 입력하세요"
+              aria-label="공연장소 검색"
+              value={filters.venue ?? ""}
+              onChange={(e) => setFilter("venue", e.target.value || undefined)}
+              className="w-full h-9 px-2.5 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark"
             />
-            <input
-              type="date"
-              aria-label="종료일"
-              value={filters.endDate ?? ""}
-              onChange={(e) => setFilter("endDate", e.target.value || undefined)}
-              className="w-full h-8 px-2 rounded border border-border text-xs focus:outline-none focus:border-mint"
-            />
-          </div>
-        </FilterSection>
-
-        {/* 가격대 */}
-        <FilterSection title="가격대">
-          <div className="flex gap-2">
-            <input
-              type="number"
-              placeholder="최소"
-              aria-label="최소 가격"
-              value={filters.minPrice ?? ""}
-              onChange={(e) =>
-                setFilter("minPrice", e.target.value ? Number(e.target.value) : undefined)
-              }
-              className="w-full h-8 px-2 rounded border border-border text-xs focus:outline-none focus:border-mint"
-            />
-            <span className="text-text-muted self-center text-xs">~</span>
-            <input
-              type="number"
-              placeholder="최대"
-              aria-label="최대 가격"
-              value={filters.maxPrice ?? ""}
-              onChange={(e) =>
-                setFilter("maxPrice", e.target.value ? Number(e.target.value) : undefined)
-              }
-              className="w-full h-8 px-2 rounded border border-border text-xs focus:outline-none focus:border-mint"
-            />
-          </div>
-        </FilterSection>
-
-        {/* 관람연령 */}
-        <FilterSection title="관람연령">
-          {ageLimits?.map((a) => (
-            <FilterCheckbox
-              key={a.code}
-              label={a.label}
-              checked={filters.ageLimit === a.code}
-              onChange={() =>
-                setFilter("ageLimit", filters.ageLimit === a.code ? undefined : a.code)
-              }
-            />
-          ))}
-        </FilterSection>
-
-        {/* 예매처 */}
-        <FilterSection title="예매처">
-          {ticketSites?.map((t) => (
-            <FilterCheckbox
-              key={t.code}
-              label={t.label}
-              checked={filters.ticketSite === t.code}
-              onChange={() =>
-                setFilter(
-                  "ticketSite",
-                  filters.ticketSite === t.code ? undefined : t.code
-                )
-              }
-            />
-          ))}
-        </FilterSection>
-
-        {/* 공연장소 */}
-        <FilterSection title="공연장소">
-          <input
-            type="text"
-            placeholder="장소 검색"
-            aria-label="공연장소 검색"
-            value={filters.venue ?? ""}
-            onChange={(e) => setFilter("venue", e.target.value || undefined)}
-            className="w-full h-8 px-2 rounded border border-border text-xs focus:outline-none focus:border-mint"
-          />
-        </FilterSection>
+          </AccordionSection>
+        </div>
       </div>
     </aside>
   );
 }
 
-function FilterSection({
+function AccordionSection({
   title,
+  active,
   children,
 }: {
   title: string;
+  active: boolean;
   children: React.ReactNode;
 }) {
-  return (
-    <div>
-      <h3 className="text-xs font-medium text-text-secondary mb-2">{title}</h3>
-      <div className="space-y-1.5">{children}</div>
-    </div>
-  );
-}
+  const [open, setOpen] = useState(true);
 
-function FilterCheckbox({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: () => void;
-}) {
   return (
-    <label className="flex items-center gap-2 cursor-pointer group">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={onChange}
-        className="w-3.5 h-3.5 rounded border-border text-mint focus:ring-mint accent-mint"
-      />
-      <span className="text-xs text-text-secondary group-hover:text-foreground transition-colors">
-        {label}
-      </span>
-    </label>
+    <div className="border-b border-border-light last:border-0">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between py-3 text-left"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-foreground">{title}</span>
+          {active && (
+            <span className="w-1.5 h-1.5 rounded-full bg-mint-dark" />
+          )}
+        </div>
+        <svg
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+          className={`text-text-muted transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+      {open && <div className="pb-3">{children}</div>}
+    </div>
   );
 }

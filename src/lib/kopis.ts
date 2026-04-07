@@ -133,18 +133,16 @@ export function parseKopisDate(dateStr: string): Date {
 }
 
 export function mapGenreToCode(genrenm: string): string {
-  const genreMap: Record<string, string> = {
-    뮤지컬: "musical",
-    연극: "theater",
-    콘서트: "concert",
-    클래식: "classic",
-    무용: "dance",
-    국악: "korean",
-    서양음악: "classic",
-    대중음악: "concert",
-    복합: "etc",
-  };
-  return genreMap[genrenm] ?? "etc";
+  // KOPIS 장르명: "서양음악(클래식)", "한국음악(국악)", "무용(서양/한국무용)" 등 괄호 포함
+  // → includes 매칭으로 처리
+  const g = genrenm.toLowerCase();
+  if (g.includes("뮤지컬")) return "musical";
+  if (g.includes("연극")) return "theater";
+  if (g.includes("대중음악") || g.includes("콘서트")) return "concert";
+  if (g.includes("클래식") || g.includes("서양음악")) return "classic";
+  if (g.includes("무용")) return "dance";
+  if (g.includes("국악") || g.includes("한국음악")) return "korean";
+  return "etc";
 }
 
 export function mapStatusToCode(prfstate: string): string {
