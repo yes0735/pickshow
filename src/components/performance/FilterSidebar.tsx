@@ -73,24 +73,30 @@ export default function FilterSidebar() {
             title="공연기간"
             active={!!(filters.startDate || filters.endDate)}
           >
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                aria-label="시작일"
-                value={filters.startDate ?? ""}
-                onClick={(e) => (e.target as HTMLInputElement).showPicker()}
-                onChange={(e) => setFilter("startDate", e.target.value || undefined)}
-                className="w-full h-9 px-2.5 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark cursor-pointer"
-              />
-              <span className="text-text-muted text-xs flex-shrink-0">~</span>
-              <input
-                type="date"
-                aria-label="종료일"
-                value={filters.endDate ?? ""}
-                onClick={(e) => (e.target as HTMLInputElement).showPicker()}
-                onChange={(e) => setFilter("endDate", e.target.value || undefined)}
-                className="w-full h-9 px-2.5 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark cursor-pointer"
-              />
+            {/* 데스크톱 사이드바(좁음): 2줄, 모바일 바텀시트(넓음): 1줄 */}
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-1.5">
+              <div className="relative">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-text-muted pointer-events-none">시작</span>
+                <input
+                  type="date"
+                  aria-label="시작일"
+                  value={filters.startDate ?? ""}
+                  onClick={(e) => (e.target as HTMLInputElement).showPicker()}
+                  onChange={(e) => setFilter("startDate", e.target.value || undefined)}
+                  className="w-full h-9 pl-9 pr-2 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark cursor-pointer"
+                />
+              </div>
+              <div className="relative">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-text-muted pointer-events-none">종료</span>
+                <input
+                  type="date"
+                  aria-label="종료일"
+                  value={filters.endDate ?? ""}
+                  onClick={(e) => (e.target as HTMLInputElement).showPicker()}
+                  onChange={(e) => setFilter("endDate", e.target.value || undefined)}
+                  className="w-full h-9 pl-9 pr-2 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark cursor-pointer"
+                />
+              </div>
             </div>
           </AccordionSection>
 
