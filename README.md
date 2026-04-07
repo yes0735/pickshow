@@ -238,46 +238,6 @@ Swagger UI: https://pickshow.vercel.app/api-docs
 
 ---
 
-## 스크린샷 추가 가이드
-
-`docs/screenshots/` 폴더에 아래 파일명으로 캡처 이미지를 저장하면 README에 자동 표시됩니다.
-
-| 파일명 | 캡처 내용 | 권장 크기 |
-|--------|----------|----------|
-| `web-search.png` | 웹 메인 검색 화면 (장르칩 + 카드목록) | 1280x800 |
-| `mobile-search.png` | 모바일 검색 화면 | 375x812 |
-| `web-detail.png` | 웹 공연 상세 모달 | 1280x800 |
-| `mobile-detail.png` | 모바일 바텀시트 상세 | 375x812 |
-| `web-filter.png` | 웹 사이드바 필터 (아코디언) | 1280x800 |
-| `mobile-filter.png` | 모바일 바텀시트 필터 | 375x812 |
-| `login.png` | 로그인 페이지 | 375x812 |
-| `register.png` | 회원가입 페이지 | 375x812 |
-
-**Chrome DevTools 캡처 방법**:
-1. `F12` → `Ctrl+Shift+M` (모바일 토글)
-2. 디바이스 선택 (iPhone 14 Pro 등)
-3. `Ctrl+Shift+P` → "Capture full size screenshot"
-
----
-
-## 배포
-
-Vercel에 자동 배포 설정 완료. `main` 브랜치 push 시 자동 빌드+배포.
-
-```bash
-# 수동 배포
-vercel deploy --prod
-```
-
-### Vercel Cron Jobs
-
-| 스케줄 (KST) | 경로 | 역할 |
-|-------------|------|------|
-| 매일 00:00 | `/api/cron/update-statuses` | 공연 상태 자동 업데이트 |
-| 매일 01:00 | `/api/cron/sync-performances` | KOPIS 신규 공연 동기화 |
-
----
-
 ## 라이선스
 
 MIT
