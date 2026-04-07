@@ -73,27 +73,24 @@ export default function FilterSidebar() {
             title="공연기간"
             active={!!(filters.startDate || filters.endDate)}
           >
-            <div className="space-y-2">
-              <div>
-                <span className="text-[10px] text-text-muted block mb-1">시작일</span>
-                <input
-                  type="date"
-                  aria-label="시작일"
-                  value={filters.startDate ?? ""}
-                  onChange={(e) => setFilter("startDate", e.target.value || undefined)}
-                  className="w-full h-9 px-2.5 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark"
-                />
-              </div>
-              <div>
-                <span className="text-[10px] text-text-muted block mb-1">종료일</span>
-                <input
-                  type="date"
-                  aria-label="종료일"
-                  value={filters.endDate ?? ""}
-                  onChange={(e) => setFilter("endDate", e.target.value || undefined)}
-                  className="w-full h-9 px-2.5 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark"
-                />
-              </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                aria-label="시작일"
+                value={filters.startDate ?? ""}
+                onClick={(e) => (e.target as HTMLInputElement).showPicker()}
+                onChange={(e) => setFilter("startDate", e.target.value || undefined)}
+                className="w-full h-9 px-2.5 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark cursor-pointer"
+              />
+              <span className="text-text-muted text-xs flex-shrink-0">~</span>
+              <input
+                type="date"
+                aria-label="종료일"
+                value={filters.endDate ?? ""}
+                onClick={(e) => (e.target as HTMLInputElement).showPicker()}
+                onChange={(e) => setFilter("endDate", e.target.value || undefined)}
+                className="w-full h-9 px-2.5 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark cursor-pointer"
+              />
             </div>
           </AccordionSection>
 
