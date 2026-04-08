@@ -3,13 +3,25 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useSearchStore } from "@/features/search/hooks";
 
 export default function Header() {
   const [input, setInput] = useState("");
   const setFilter = useSearchStore((s) => s.setFilter);
+  const resetFilters = useSearchStore((s) => s.resetFilters);
   const { data: session } = useSession();
+  const pathname = usePathname();
+
+  // 페이지 이동 시 검색어+필터 초기화
+  useEffect(() => {
+    if (pathname !== "/") {
+      setInput("");
+      resetFilters();
+      setFilter("q", undefined);
+    }
+  }, [pathname, resetFilters, setFilter]);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -31,7 +43,15 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-border">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
-        <Link href="/" className="flex-shrink-0 text-xl font-bold">
+        <Link
+          href="/"
+          className="flex-shrink-0 text-xl font-bold"
+          onClick={() => {
+            setInput("");
+            resetFilters();
+            setFilter("q", undefined);
+          }}
+        >
           <span className="text-mint-dark">Pick</span>
           <span className="text-pink-dark">Show</span>
         </Link>
