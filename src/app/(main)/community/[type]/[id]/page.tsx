@@ -20,13 +20,14 @@ interface PostDetail {
   viewCount: number;
   commentCount: number;
   createdAt: string;
-  comments: {
-    id: string;
-    authorNickname: string;
-    authorId: string | null;
-    content: string;
-    createdAt: string;
-  }[];
+}
+
+interface Comment {
+  id: string;
+  authorNickname: string;
+  authorId: string | null;
+  content: string;
+  createdAt: string;
 }
 
 export default function PostDetailPage() {
@@ -36,6 +37,7 @@ export default function PostDetailPage() {
   const { data: session } = useSession();
   const boardType = params.type as string;
   const postId = params.id as string;
+  const [commentPage, setCommentPage] = useState(1);
 
   const { data: post, isLoading } = useQuery<PostDetail>({
     queryKey: ["post", postId],
@@ -45,6 +47,19 @@ export default function PostDetailPage() {
       const json = await res.json();
       return json.data;
     },
+  });
+
+  // 댓글 페이징 조회
+  const { data: commentsData } = useQuery<{
+    data: Comment[];
+    pagination: { page: number; totalPages: number; total: number };
+  }>({
+    queryKey: ["comments", postId, commentPage],
+    queryFn: async () => {
+      const res = await fetch(`/api/community/posts/${postId}/comments?page=${commentPage}&limit=10`);
+      return res.json();
+    },
+    enabled: !!post,
   });
 
   // 댓글 작성
@@ -70,6 +85,7 @@ export default function PostDetailPage() {
       setCommentText("");
       setCommentNickname("");
       setCommentPassword("");
+      queryClient.invalidateQueries({ queryKey: ["comments", postId] });
       queryClient.invalidateQueries({ queryKey: ["post", postId] });
     },
   });
@@ -162,12 +178,12 @@ export default function PostDetailPage() {
           <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
-          댓글 {post.comments.length}개
+          댓글 {commentsData?.pagination.total ?? post.commentCount}개
         </h2>
 
-        {post.comments.length > 0 && (
-          <div className="space-y-2.5 mb-6">
-            {post.comments.map((c) => (
+        {commentsData && commentsData.data.length > 0 && (
+          <div className="space-y-2.5 mb-4">
+            {commentsData.data.map((c) => (
               <div key={c.id} className="p-3.5 rounded-xl bg-bg-secondary">
                 <div className="flex items-center gap-2 mb-1.5">
                   <span className="w-6 h-6 rounded-full bg-border-light text-text-muted flex items-center justify-center text-[10px] font-bold">
@@ -178,6 +194,25 @@ export default function PostDetailPage() {
                 </div>
                 <p className="text-sm pl-8">{c.content}</p>
               </div>
+            ))}
+          </div>
+        )}
+
+        {/* 댓글 페이지네이션 */}
+        {commentsData && commentsData.pagination.totalPages > 1 && (
+          <div className="flex justify-center gap-1 mb-6">
+            {Array.from({ length: commentsData.pagination.totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setCommentPage(p)}
+                className={`w-7 h-7 rounded text-xs font-medium transition-colors ${
+                  p === commentPage
+                    ? "bg-mint-dark text-white"
+                    : "text-text-muted hover:bg-bg-secondary"
+                }`}
+              >
+                {p}
+              </button>
             ))}
           </div>
         )}

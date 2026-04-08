@@ -1,8 +1,20 @@
-// Design Ref: §4.1 — POST /api/community/posts/[id]/comments
-import { NextResponse } from "next/server";
+// GET/POST /api/community/posts/[id]/comments
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { createComment } from "@/features/community/service";
+import { createComment, getCommentsByPostId } from "@/features/community/service";
 import { createCommentSchema } from "@/features/community/schema";
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id: postId } = await params;
+  const page = Number(request.nextUrl.searchParams.get("page") ?? "1");
+  const limit = Number(request.nextUrl.searchParams.get("limit") ?? "10");
+
+  const result = await getCommentsByPostId(postId, { page, limit });
+  return NextResponse.json(result);
+}
 
 export async function POST(
   request: Request,

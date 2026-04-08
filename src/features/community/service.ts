@@ -43,22 +43,10 @@ export async function getPosts(params: {
   };
 }
 
-// 게시글 상세 + 댓글
+// 게시글 상세 (댓글 별도 조회)
 export async function getPostDetail(id: string) {
   const post = await prisma.boardPost.findUnique({
     where: { id },
-    include: {
-      comments: {
-        orderBy: { createdAt: "asc" },
-        select: {
-          id: true,
-          authorNickname: true,
-          authorId: true,
-          content: true,
-          createdAt: true,
-        },
-      },
-    },
   });
 
   if (!post) return null;
@@ -73,10 +61,34 @@ export async function getPostDetail(id: string) {
     ...post,
     createdAt: post.createdAt.toISOString(),
     updatedAt: post.updatedAt.toISOString(),
-    comments: post.comments.map((c) => ({
-      ...c,
-      createdAt: c.createdAt.toISOString(),
-    })),
+  };
+}
+
+// 댓글 페이징 조회
+export async function getCommentsByPostId(postId: string, params?: { page?: number; limit?: number }) {
+  const page = params?.page ?? 1;
+  const limit = params?.limit ?? 10;
+
+  const [items, total] = await Promise.all([
+    prisma.boardComment.findMany({
+      where: { postId },
+      orderBy: { createdAt: "asc" },
+      skip: (page - 1) * limit,
+      take: limit,
+      select: {
+        id: true,
+        authorNickname: true,
+        authorId: true,
+        content: true,
+        createdAt: true,
+      },
+    }),
+    prisma.boardComment.count({ where: { postId } }),
+  ]);
+
+  return {
+    data: items.map((c) => ({ ...c, createdAt: c.createdAt.toISOString() })),
+    pagination: { page, totalPages: Math.ceil(total / limit), total },
   };
 }
 
