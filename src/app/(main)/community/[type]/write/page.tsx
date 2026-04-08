@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
@@ -23,6 +24,7 @@ const CATEGORIES: Record<string, { code: string; label: string }[]> = {
 export default function WritePostPage() {
   const params = useParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: session } = useSession();
   const boardType = (params.type as string) ?? "anonymous";
 
@@ -82,6 +84,7 @@ export default function WritePostPage() {
     }
 
     const data = await res.json();
+    queryClient.invalidateQueries({ queryKey: ["posts"] });
     router.push(`/community/${boardType}/${data.data.id}`);
   };
 

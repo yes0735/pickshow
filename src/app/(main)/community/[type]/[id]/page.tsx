@@ -84,7 +84,10 @@ export default function PostDetailPage() {
       });
       if (!res.ok) throw new Error("삭제 실패");
     },
-    onSuccess: () => router.push(`/community/${boardType}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      router.push(`/community/${boardType}`);
+    },
   });
 
   if (isLoading) {
