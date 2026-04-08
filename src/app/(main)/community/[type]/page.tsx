@@ -1,4 +1,4 @@
-// 게시판 목록 — 카드형 UI
+// 게시판 목록 — 일반 게시판 형태
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
@@ -7,17 +7,9 @@ import Link from "next/link";
 import { cn, getRelativeTime } from "@/lib/utils";
 
 const CATEGORY_COLORS: Record<string, string> = {
-  promotion: "bg-pink-light text-pink-dark border-pink-dark/15",
-  info: "bg-mint-light text-mint-dark border-mint-dark/15",
-  wanted: "bg-[#FFF3E0] text-[#E65100] border-[#E65100]/15",
-  transfer: "bg-[#E8EAF6] text-[#283593] border-[#283593]/15",
-};
-
-const CATEGORY_ICONS: Record<string, string> = {
-  promotion: "📢",
-  info: "💡",
-  wanted: "🔍",
-  transfer: "🔄",
+  promotion: "text-pink-dark",
+  info: "text-mint-dark",
+  wanted: "text-[#E65100]",
 };
 
 const CATEGORIES = [
@@ -60,35 +52,27 @@ export default function BoardListPage() {
   const total = data?.pagination?.total ?? 0;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto px-4 py-6">
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h1 className="text-xl font-bold">게시판</h1>
-          {!isLoading && (
-            <p className="text-xs text-text-muted mt-0.5">{total.toLocaleString()}개의 글</p>
-          )}
-        </div>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-lg font-bold">게시판</h1>
         <Link
           href={`/community/${boardType}/write`}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-mint-dark text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
+          className="px-4 py-2 rounded-lg bg-mint-dark text-white text-sm font-medium hover:opacity-90 transition-opacity"
         >
-          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
           글쓰기
         </Link>
       </div>
 
       {/* 카테고리 필터 */}
-      <div className="flex gap-2 mb-5 overflow-x-auto">
+      <div className="flex gap-1.5 mb-4">
         <button
           onClick={() => router.push(`/community/${boardType}`)}
           className={cn(
-            "px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap",
+            "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
             !category
-              ? "bg-foreground text-white"
-              : "bg-bg-secondary text-text-secondary hover:bg-border-light"
+              ? "bg-mint-dark text-white"
+              : "text-text-secondary hover:bg-bg-secondary"
           )}
         >
           전체
@@ -98,83 +82,86 @@ export default function BoardListPage() {
             key={c.code}
             onClick={() => router.push(`/community/${boardType}?category=${c.code}`)}
             className={cn(
-              "px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border",
+              "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
               category === c.code
-                ? CATEGORY_COLORS[c.code]
-                : "bg-white text-text-secondary border-border hover:border-text-muted"
+                ? "bg-mint-dark text-white"
+                : "text-text-secondary hover:bg-bg-secondary"
             )}
           >
-            {CATEGORY_ICONS[c.code]} {c.label}
+            {c.label}
           </button>
         ))}
+        {!isLoading && (
+          <span className="ml-auto text-xs text-text-muted self-center">총 {total}건</span>
+        )}
       </div>
 
-      {/* 로딩 스켈레톤 */}
+      {/* 테이블 헤더 */}
+      <div className="hidden sm:grid grid-cols-[1fr_80px_80px_60px] gap-2 px-4 py-2 bg-bg-secondary rounded-t-lg text-[11px] text-text-muted font-medium border-b border-border">
+        <span>제목</span>
+        <span className="text-center">작성자</span>
+        <span className="text-center">날짜</span>
+        <span className="text-center">조회</span>
+      </div>
+
+      {/* 로딩 */}
       {isLoading && (
-        <div className="space-y-3">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-24 rounded-2xl bg-bg-secondary animate-pulse" />
+        <div className="divide-y divide-border border border-border sm:border-t-0 rounded-b-lg sm:rounded-t-none rounded-lg">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-12 bg-bg-secondary/50 animate-pulse" />
           ))}
         </div>
       )}
 
       {/* 빈 상태 */}
       {!isLoading && (!data?.data || data.data.length === 0) && (
-        <div className="text-center py-24">
-          <div className="text-4xl mb-3">📝</div>
-          <p className="text-text-muted text-sm mb-1">아직 게시글이 없습니다</p>
-          <p className="text-text-muted text-xs">첫 번째 글을 작성해보세요!</p>
+        <div className="text-center py-20 border border-border rounded-lg sm:rounded-t-none sm:border-t-0">
+          <p className="text-text-muted text-sm">게시글이 없습니다</p>
         </div>
       )}
 
-      {/* 게시글 목록 (카드형) */}
+      {/* 게시글 목록 */}
       {data?.data && data.data.length > 0 && (
-        <div className="space-y-2.5">
+        <div className="divide-y divide-border border border-border sm:border-t-0 rounded-b-lg sm:rounded-t-none rounded-lg overflow-hidden">
           {data.data.map((post) => (
             <Link
               key={post.id}
               href={`/community/${boardType}/${post.id}`}
-              className="block p-4 rounded-2xl border border-border bg-white hover:shadow-md hover:border-mint-dark/20 transition-all"
+              className="block hover:bg-bg-secondary/50 transition-colors"
             >
-              {/* 카테고리 + 시간 */}
-              <div className="flex items-center justify-between mb-2">
-                <span
-                  className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${
-                    CATEGORY_COLORS[post.category] ?? "bg-bg-secondary text-text-muted border-border"
-                  }`}
-                >
-                  {CATEGORY_ICONS[post.category] ?? ""}{" "}
-                  {CATEGORIES.find((c) => c.code === post.category)?.label ?? post.category}
-                </span>
-                <span className="text-[11px] text-text-muted">
-                  {getRelativeTime(new Date(post.createdAt))}
-                </span>
-              </div>
-
-              {/* 제목 */}
-              <h3 className="text-sm font-semibold leading-snug mb-2 line-clamp-2">
-                {post.title}
-              </h3>
-
-              {/* 하단 메타 */}
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-text-muted">{post.authorNickname}</span>
-                <div className="flex items-center gap-3 text-[11px] text-text-muted">
-                  <span className="flex items-center gap-0.5">
-                    <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                    {post.viewCount}
+              {/* 데스크톱 */}
+              <div className="hidden sm:grid grid-cols-[1fr_80px_80px_60px] gap-2 px-4 py-3 items-center">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`text-[11px] font-medium flex-shrink-0 ${CATEGORY_COLORS[post.category] ?? "text-text-muted"}`}>
+                    [{CATEGORIES.find((c) => c.code === post.category)?.label ?? post.category}]
                   </span>
+                  <span className="text-sm truncate">{post.title}</span>
                   {post.commentCount > 0 && (
-                    <span className="flex items-center gap-0.5 text-mint-dark font-medium">
-                      <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                      </svg>
-                      {post.commentCount}
+                    <span className="text-[11px] text-mint-dark font-medium flex-shrink-0">
+                      [{post.commentCount}]
                     </span>
                   )}
+                </div>
+                <span className="text-xs text-text-muted text-center truncate">{post.authorNickname}</span>
+                <span className="text-xs text-text-muted text-center">{formatShortDate(post.createdAt)}</span>
+                <span className="text-xs text-text-muted text-center">{post.viewCount}</span>
+              </div>
+
+              {/* 모바일 */}
+              <div className="sm:hidden px-4 py-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className={`text-[10px] font-medium ${CATEGORY_COLORS[post.category] ?? "text-text-muted"}`}>
+                    [{CATEGORIES.find((c) => c.code === post.category)?.label ?? post.category}]
+                  </span>
+                  <span className="text-sm truncate flex-1">{post.title}</span>
+                  {post.commentCount > 0 && (
+                    <span className="text-[10px] text-mint-dark font-medium">[{post.commentCount}]</span>
+                  )}
+                </div>
+                <div className="flex gap-2 text-[11px] text-text-muted">
+                  <span>{post.authorNickname}</span>
+                  <span>{getRelativeTime(new Date(post.createdAt))}</span>
+                  <span>조회 {post.viewCount}</span>
                 </div>
               </div>
             </Link>
@@ -184,8 +171,7 @@ export default function BoardListPage() {
 
       {/* 페이지네이션 */}
       {data?.pagination && data.pagination.totalPages > 1 && (
-        <div className="flex justify-center items-center gap-1 mt-8">
-          {/* 이전 */}
+        <div className="flex justify-center items-center gap-1 mt-6">
           <button
             onClick={() => {
               if (page <= 1) return;
@@ -195,16 +181,13 @@ export default function BoardListPage() {
               router.push(`/community/${boardType}?${qs}`);
             }}
             disabled={page <= 1}
-            className="w-8 h-8 rounded-lg text-xs text-text-muted hover:bg-bg-secondary disabled:opacity-30 transition-colors"
+            className="px-2 h-8 rounded text-xs text-text-muted hover:bg-bg-secondary disabled:opacity-30"
           >
-            ‹
+            이전
           </button>
 
           {Array.from({ length: data.pagination.totalPages }, (_, i) => i + 1)
-            .filter((p) => {
-              // 현재 페이지 기준 ±2 범위만 표시
-              return Math.abs(p - page) <= 2 || p === 1 || p === data.pagination.totalPages;
-            })
+            .filter((p) => Math.abs(p - page) <= 2 || p === 1 || p === data.pagination.totalPages)
             .map((p, idx, arr) => (
               <span key={p}>
                 {idx > 0 && arr[idx - 1] !== p - 1 && (
@@ -218,7 +201,7 @@ export default function BoardListPage() {
                     router.push(`/community/${boardType}?${qs}`);
                   }}
                   className={cn(
-                    "w-8 h-8 rounded-lg text-xs font-medium transition-colors",
+                    "w-8 h-8 rounded text-xs font-medium transition-colors",
                     p === page
                       ? "bg-mint-dark text-white"
                       : "text-text-muted hover:bg-bg-secondary"
@@ -229,7 +212,6 @@ export default function BoardListPage() {
               </span>
             ))}
 
-          {/* 다음 */}
           <button
             onClick={() => {
               if (page >= data.pagination.totalPages) return;
@@ -239,23 +221,22 @@ export default function BoardListPage() {
               router.push(`/community/${boardType}?${qs}`);
             }}
             disabled={page >= data.pagination.totalPages}
-            className="w-8 h-8 rounded-lg text-xs text-text-muted hover:bg-bg-secondary disabled:opacity-30 transition-colors"
+            className="px-2 h-8 rounded text-xs text-text-muted hover:bg-bg-secondary disabled:opacity-30"
           >
-            ›
+            다음
           </button>
         </div>
       )}
-
-      {/* 모바일 글쓰기 FAB */}
-      <Link
-        href={`/community/${boardType}/write`}
-        className="sm:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full bg-mint-dark text-white shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity z-30"
-        aria-label="글쓰기"
-      >
-        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-      </Link>
     </div>
   );
+}
+
+function formatShortDate(dateStr: string) {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  if (isToday) {
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  }
+  return `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
 }
