@@ -1,7 +1,12 @@
 // Design Ref: §2.1 — KOPIS API 클라이언트 (XML→JSON 변환)
 
 const KOPIS_BASE_URL = "http://www.kopis.or.kr/openApi/restful";
-const KOPIS_API_KEY = process.env.KOPIS_API_KEY!;
+
+function getApiKey(): string {
+  const key = process.env.KOPIS_API_KEY;
+  if (!key) throw new Error("KOPIS_API_KEY가 설정되지 않았습니다.");
+  return key;
+}
 
 interface KopisPerformance {
   mt20id: string; // 공연 ID
@@ -58,7 +63,7 @@ export async function fetchPerformanceList(params: {
   shcate?: string; // 장르코드
 }): Promise<KopisPerformance[]> {
   const searchParams = new URLSearchParams({
-    service: KOPIS_API_KEY,
+    service: getApiKey(),
     stdate: params.stdate,
     eddate: params.eddate,
     cpage: String(params.cpage ?? 1),
@@ -87,7 +92,7 @@ export async function fetchPerformanceDetail(
   kopisId: string
 ): Promise<KopisDetail | null> {
   const res = await fetch(
-    `${KOPIS_BASE_URL}/pblprfr/${kopisId}?service=${KOPIS_API_KEY}`
+    `${KOPIS_BASE_URL}/pblprfr/${kopisId}?service=${getApiKey()}`
   );
   const xml = await res.text();
 
