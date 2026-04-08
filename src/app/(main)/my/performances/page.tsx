@@ -41,12 +41,7 @@ export default function MyPerformancesPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-bold">내공연</h1>
-          <p className="text-xs text-text-muted mt-0.5">{performances?.length ?? 0}개의 공연</p>
-        </div>
-      </div>
+      <h1 className="text-xl font-bold mb-6">내공연</h1>
 
       {/* 로딩 */}
       {isLoading && myPerfs.length > 0 && (
@@ -58,11 +53,9 @@ export default function MyPerformancesPage() {
       )}
 
       {/* 빈 상태 */}
-      {!isLoading && (!performances || performances.length === 0) && myPerfs.length === 0 && (
+      {!isLoading && myPerfs.length === 0 && (
         <div className="text-center py-20">
-          <div className="text-4xl mb-3">✓</div>
-          <p className="text-text-muted text-sm mb-1">등록한 공연이 없습니다</p>
-          <p className="text-text-muted text-xs mb-4">공연 카드의 ✓ 버튼으로 등록해보세요</p>
+          <p className="text-text-muted text-lg mb-2">등록한 공연이 없습니다</p>
           <Link href="/" className="text-sm text-mint-dark hover:underline">
             공연 검색하러 가기
           </Link>
