@@ -63,8 +63,8 @@ export default function Header() {
               <span className="sm:hidden text-xs">찜</span>
             </Link>
             <Link href="/my/performances" className={navLinkClass("/my/performances")}>
-              <span className="hidden sm:inline">내가 본 공연</span>
-              <span className="sm:hidden text-xs">MY</span>
+              <span className="hidden sm:inline">내공연</span>
+              <span className="sm:hidden text-xs">내공연</span>
             </Link>
           </nav>
         </div>
