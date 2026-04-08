@@ -29,13 +29,13 @@ export interface Performance {
 
 export interface SearchFilters {
   q?: string;
-  genre?: string;
-  status?: string;
+  genre?: string[];
+  status?: string[];
   startDate?: string;
   endDate?: string;
   minPrice?: number;
   maxPrice?: number;
-  ageLimit?: string;
-  ticketSite?: string;
+  ageLimit?: string[];
+  ticketSite?: string[];
   venue?: string;
 }

@@ -1,20 +1,21 @@
-// 적용된 필터를 제거 가능한 태그로 표시
+// 적용된 필터를 제거 가능한 태그로 표시 (다중선택 대응)
 "use client";
 
 import { useSearchStore, useCommonCodes } from "@/features/search/hooks";
 
 export default function ActiveFilterTags() {
-  const { filters, setFilter } = useSearchStore();
+  const { filters, toggleFilter, setFilter } = useSearchStore();
   const { data: statuses } = useCommonCodes("status");
   const { data: ageLimits } = useCommonCodes("age_limit");
   const { data: ticketSites } = useCommonCodes("ticket_site");
 
   const tags: { key: string; label: string; onRemove: () => void }[] = [];
 
-  if (filters.status) {
-    const label = statuses?.find((s) => s.code === filters.status)?.label ?? filters.status;
-    tags.push({ key: "status", label: `상태: ${label}`, onRemove: () => setFilter("status", undefined) });
-  }
+  // 다중선택 필터 → 각 값마다 태그 생성
+  filters.status?.forEach((code) => {
+    const label = statuses?.find((s) => s.code === code)?.label ?? code;
+    tags.push({ key: `status-${code}`, label: `상태: ${label}`, onRemove: () => toggleFilter("status", code) });
+  });
   if (filters.startDate) {
     tags.push({ key: "startDate", label: `시작: ${filters.startDate}`, onRemove: () => setFilter("startDate", undefined) });
   }
@@ -27,14 +28,14 @@ export default function ActiveFilterTags() {
   if (filters.maxPrice !== undefined) {
     tags.push({ key: "maxPrice", label: `최대 ${filters.maxPrice.toLocaleString()}원`, onRemove: () => setFilter("maxPrice", undefined) });
   }
-  if (filters.ageLimit) {
-    const label = ageLimits?.find((a) => a.code === filters.ageLimit)?.label ?? filters.ageLimit;
-    tags.push({ key: "ageLimit", label, onRemove: () => setFilter("ageLimit", undefined) });
-  }
-  if (filters.ticketSite) {
-    const label = ticketSites?.find((t) => t.code === filters.ticketSite)?.label ?? filters.ticketSite;
-    tags.push({ key: "ticketSite", label: `예매: ${label}`, onRemove: () => setFilter("ticketSite", undefined) });
-  }
+  filters.ageLimit?.forEach((code) => {
+    const label = ageLimits?.find((a) => a.code === code)?.label ?? code;
+    tags.push({ key: `age-${code}`, label, onRemove: () => toggleFilter("ageLimit", code) });
+  });
+  filters.ticketSite?.forEach((code) => {
+    const label = ticketSites?.find((t) => t.code === code)?.label ?? code;
+    tags.push({ key: `ticket-${code}`, label: `예매: ${label}`, onRemove: () => toggleFilter("ticketSite", code) });
+  });
   if (filters.venue) {
     tags.push({ key: "venue", label: `장소: ${filters.venue}`, onRemove: () => setFilter("venue", undefined) });
   }

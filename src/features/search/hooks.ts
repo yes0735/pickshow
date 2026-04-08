@@ -7,12 +7,16 @@ import type { SearchFilters } from "@/types/performance";
 import type { Performance } from "@/types/performance";
 import type { CommonCode, Pagination, SortOption, ViewMode } from "@/types/common";
 
+// 다중선택 필드 키
+const MULTI_KEYS: (keyof SearchFilters)[] = ["genre", "status", "ageLimit", "ticketSite"];
+
 // Zustand store for filter state
 interface SearchStore {
   filters: SearchFilters;
   sort: SortOption;
   viewMode: ViewMode;
-  setFilter: (key: keyof SearchFilters, value: string | number | undefined) => void;
+  setFilter: (key: keyof SearchFilters, value: string | number | string[] | undefined) => void;
+  toggleFilter: (key: keyof SearchFilters, value: string) => void;
   setSort: (sort: SortOption) => void;
   setViewMode: (mode: ViewMode) => void;
   resetFilters: () => void;
@@ -20,7 +24,7 @@ interface SearchStore {
 
 // 기본 필터: 공연중
 const defaultFilters = (): SearchFilters => ({
-  status: "ongoing",
+  status: ["ongoing"],
 });
 
 export const useSearchStore = create<SearchStore>((set) => ({
@@ -31,6 +35,20 @@ export const useSearchStore = create<SearchStore>((set) => ({
     set((state) => ({
       filters: { ...state.filters, [key]: value || undefined },
     })),
+  // 다중선택 토글: 배열에서 값 추가/제거
+  toggleFilter: (key, value) =>
+    set((state) => {
+      const current = (state.filters[key] as string[] | undefined) ?? [];
+      const next = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value];
+      return {
+        filters: {
+          ...state.filters,
+          [key]: next.length > 0 ? next : undefined,
+        },
+      };
+    }),
   setSort: (sort) => set({ sort }),
   setViewMode: (viewMode) => set({ viewMode }),
   resetFilters: () =>
@@ -40,11 +58,16 @@ export const useSearchStore = create<SearchStore>((set) => ({
     })),
 }));
 
-// Build query string from filters
+// Build query string from filters (배열은 콤마 구분)
 function buildSearchParams(filters: SearchFilters, sort: SortOption, cursor?: string) {
   const params = new URLSearchParams();
   Object.entries(filters).forEach(([key, value]) => {
-    if (value !== undefined && value !== "") params.set(key, String(value));
+    if (value === undefined || value === "") return;
+    if (Array.isArray(value)) {
+      if (value.length > 0) params.set(key, value.join(","));
+    } else {
+      params.set(key, String(value));
+    }
   });
   params.set("sort", sort);
   params.set("limit", "10");
@@ -84,6 +107,6 @@ export function useCommonCodes(group?: string) {
       const json = await res.json();
       return json.data;
     },
-    staleTime: 1000 * 60 * 30, // 30분 캐시
+    staleTime: 1000 * 60 * 30,
   });
 }

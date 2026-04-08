@@ -1,18 +1,15 @@
-// 장르 필터 — 공연목록 상단 칩 (모바일: flex-wrap, 데스크톱: 한 줄)
+// 장르 필터 — 다중선택 칩
 "use client";
 
 import { useSearchStore, useCommonCodes } from "@/features/search/hooks";
 import { cn } from "@/lib/utils";
 
 export default function GenreFilter() {
-  const { filters, setFilter } = useSearchStore();
+  const { filters, toggleFilter, setFilter } = useSearchStore();
   const { data: genres } = useCommonCodes("genre");
 
-  const selected = filters.genre;
-
-  const handleSelect = (code: string | undefined) => {
-    setFilter("genre", selected === code ? undefined : code);
-  };
+  const selected = filters.genre ?? [];
+  const isAll = selected.length === 0;
 
   const chipBase =
     "px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all";
@@ -23,18 +20,18 @@ export default function GenreFilter() {
   return (
     <div className="flex flex-wrap gap-2">
       <button
-        onClick={() => handleSelect(undefined)}
-        className={cn(chipBase, !selected ? chipActive : chipInactive)}
+        onClick={() => setFilter("genre", undefined)}
+        className={cn(chipBase, isAll ? chipActive : chipInactive)}
       >
         전체
       </button>
       {genres?.map((g) => (
         <button
           key={g.code}
-          onClick={() => handleSelect(g.code)}
+          onClick={() => toggleFilter("genre", g.code)}
           className={cn(
             chipBase,
-            selected === g.code ? chipActive : chipInactive
+            selected.includes(g.code) ? chipActive : chipInactive
           )}
         >
           {g.label}

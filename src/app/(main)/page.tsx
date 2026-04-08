@@ -20,13 +20,13 @@ export default function SearchPage() {
 
   // 활성 필터 수 (장르, 검색어 제외)
   const activeFilterCount = [
-    filters.status,
+    filters.status?.length,
     filters.startDate,
     filters.endDate,
     filters.minPrice,
     filters.maxPrice,
-    filters.ageLimit,
-    filters.ticketSite,
+    filters.ageLimit?.length,
+    filters.ticketSite?.length,
     filters.venue,
   ].filter(Boolean).length;
   const {

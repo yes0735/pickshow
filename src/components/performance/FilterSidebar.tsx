@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useSearchStore, useCommonCodes } from "@/features/search/hooks";
 
 export default function FilterSidebar() {
-  const { filters, setFilter, resetFilters } = useSearchStore();
+  const { filters, setFilter, toggleFilter, resetFilters } = useSearchStore();
 
   const { data: statuses } = useCommonCodes("status");
   const { data: ageLimits } = useCommonCodes("age_limit");
@@ -13,13 +13,13 @@ export default function FilterSidebar() {
 
   // 적용된 필터 수 계산
   const activeCount = [
-    filters.status,
+    filters.status?.length,
     filters.startDate,
     filters.endDate,
     filters.minPrice,
     filters.maxPrice,
-    filters.ageLimit,
-    filters.ticketSite,
+    filters.ageLimit?.length,
+    filters.ticketSite?.length,
     filters.venue,
   ].filter(Boolean).length;
 
@@ -48,16 +48,14 @@ export default function FilterSidebar() {
 
         <div className="space-y-1">
           {/* 공연상태 */}
-          <AccordionSection title="공연상태" active={!!filters.status}>
+          <AccordionSection title="공연상태" active={!!filters.status?.length}>
             <div className="flex flex-wrap gap-1.5">
               {statuses?.map((s) => (
                 <button
                   key={s.code}
-                  onClick={() =>
-                    setFilter("status", filters.status === s.code ? undefined : s.code)
-                  }
+                  onClick={() => toggleFilter("status", s.code)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    filters.status === s.code
+                    filters.status?.includes(s.code)
                       ? "bg-mint-dark text-white"
                       : "bg-bg-secondary text-text-secondary hover:bg-border-light"
                   }`}
@@ -122,16 +120,14 @@ export default function FilterSidebar() {
           </AccordionSection>
 
           {/* 관람연령 */}
-          <AccordionSection title="관람연령" active={!!filters.ageLimit}>
+          <AccordionSection title="관람연령" active={!!filters.ageLimit?.length}>
             <div className="flex flex-wrap gap-1.5">
               {ageLimits?.map((a) => (
                 <button
                   key={a.code}
-                  onClick={() =>
-                    setFilter("ageLimit", filters.ageLimit === a.code ? undefined : a.code)
-                  }
+                  onClick={() => toggleFilter("ageLimit", a.code)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    filters.ageLimit === a.code
+                    filters.ageLimit?.includes(a.code)
                       ? "bg-mint-dark text-white"
                       : "bg-bg-secondary text-text-secondary hover:bg-border-light"
                   }`}
@@ -143,19 +139,14 @@ export default function FilterSidebar() {
           </AccordionSection>
 
           {/* 예매처 */}
-          <AccordionSection title="예매처" active={!!filters.ticketSite}>
+          <AccordionSection title="예매처" active={!!filters.ticketSite?.length}>
             <div className="flex flex-wrap gap-1.5">
               {ticketSites?.map((t) => (
                 <button
                   key={t.code}
-                  onClick={() =>
-                    setFilter(
-                      "ticketSite",
-                      filters.ticketSite === t.code ? undefined : t.code
-                    )
-                  }
+                  onClick={() => toggleFilter("ticketSite", t.code)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    filters.ticketSite === t.code
+                    filters.ticketSite?.includes(t.code)
                       ? "bg-mint-dark text-white"
                       : "bg-bg-secondary text-text-secondary hover:bg-border-light"
                   }`}
