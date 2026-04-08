@@ -55,31 +55,7 @@ export default function BoardListPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      {/* 탭 */}
-      <div className="flex gap-2 mb-6">
-        <Link
-          href="/community/anonymous"
-          className={cn(
-            "px-4 py-2 rounded-full text-sm font-medium transition-colors",
-            boardType === "anonymous"
-              ? "bg-mint text-white"
-              : "bg-bg-secondary text-text-secondary hover:bg-border-light"
-          )}
-        >
-          익명게시판
-        </Link>
-        <Link
-          href="/community/member"
-          className={cn(
-            "px-4 py-2 rounded-full text-sm font-medium transition-colors",
-            boardType === "member"
-              ? "bg-mint text-white"
-              : "bg-bg-secondary text-text-secondary hover:bg-border-light"
-          )}
-        >
-          회원게시판
-        </Link>
-      </div>
+      <h1 className="text-xl font-bold mb-6">게시판</h1>
 
       {/* 카테고리 필터 */}
       <div className="flex gap-2 mb-4">
