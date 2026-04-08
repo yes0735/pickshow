@@ -84,8 +84,7 @@ export default function WritePostPage() {
     }
 
     const data = await res.json();
-    queryClient.invalidateQueries({ queryKey: ["posts"] });
-    router.push(`/community/${boardType}/${data.data.id}`);
+    window.location.href = `/community/${boardType}/${data.data.id}`;
   };
 
   return (

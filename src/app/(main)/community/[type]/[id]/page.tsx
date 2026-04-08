@@ -85,8 +85,7 @@ export default function PostDetailPage() {
       if (!res.ok) throw new Error("삭제 실패");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-      router.push(`/community/${boardType}`);
+      window.location.href = `/community/${boardType}`;
     },
   });
 
