@@ -6,6 +6,13 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { cn, getRelativeTime } from "@/lib/utils";
 
+const CATEGORY_COLORS: Record<string, string> = {
+  promotion: "bg-pink-light text-pink-dark",
+  info: "bg-mint-light text-mint-dark",
+  wanted: "bg-[#FFF3E0] text-[#E65100]",
+  transfer: "bg-[#E8EAF6] text-[#283593]",
+};
+
 const CATEGORIES: Record<string, { code: string; label: string }[]> = {
   anonymous: [
     { code: "promotion", label: "홍보" },
@@ -118,7 +125,7 @@ export default function BoardListPage() {
               className="block px-4 py-3 hover:bg-bg-secondary transition-colors"
             >
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-mint-light text-mint-dark font-medium">
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${CATEGORY_COLORS[post.category] ?? "bg-bg-secondary text-text-muted"}`}>
                   {categories.find((c) => c.code === post.category)?.label ?? post.category}
                 </span>
                 <h3 className="text-sm font-medium truncate flex-1">{post.title}</h3>
