@@ -35,7 +35,7 @@ export default function FavoritesPage() {
     <div className="max-w-3xl mx-auto px-4 py-8">
       <h1 className="text-xl font-bold mb-6">찜한 공연</h1>
 
-      {isLoading && favoriteIds.length > 0 && (
+      {(!mounted || isLoading) && (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-28 rounded-xl bg-bg-secondary animate-pulse" />
@@ -43,7 +43,7 @@ export default function FavoritesPage() {
         </div>
       )}
 
-      {mounted && favoriteIds.length === 0 && (
+      {mounted && !isLoading && favoriteIds.length === 0 && (
         <div className="text-center py-20">
           <p className="text-text-muted text-lg mb-2">찜한 공연이 없습니다</p>
           <Link href="/" className="text-sm text-mint-dark hover:underline">

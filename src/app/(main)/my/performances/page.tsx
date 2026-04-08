@@ -47,8 +47,8 @@ export default function MyPerformancesPage() {
     <div className="max-w-3xl mx-auto px-4 py-6">
       <h1 className="text-xl font-bold mb-6">내공연</h1>
 
-      {/* 로딩 */}
-      {isLoading && myPerfs.length > 0 && (
+      {/* 로딩 (마운트 전 + API 로딩) */}
+      {(!mounted || isLoading) && (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-32 rounded-2xl bg-bg-secondary animate-pulse" />

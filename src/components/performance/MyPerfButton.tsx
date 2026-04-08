@@ -18,7 +18,22 @@ const STORAGE_KEY = "pickshow-my-performances";
 function getMyPerfs(): MyPerfData[] {
   if (typeof window === "undefined") return [];
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    if (!Array.isArray(raw)) return [];
+    // 이전 형태(문자열 배열) 마이그레이션
+    if (raw.length > 0 && typeof raw[0] === "string") {
+      const migrated = raw.map((id: string) => ({
+        performanceId: id,
+        viewedAt: "",
+        seatInfo: "",
+        rating: 5,
+        review: "",
+        ticketSite: "",
+      }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      return migrated;
+    }
+    return raw.filter((d: MyPerfData) => d.performanceId);
   } catch {
     return [];
   }
