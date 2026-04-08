@@ -1,51 +1,62 @@
-// Design Ref: §2.3 — 찜 클라이언트 hooks
+// 찜 — 로컬스토리지 기반 (로그인 불필요)
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSyncExternalStore, useCallback } from "react";
 
-export function useFavorites() {
-  return useQuery<{ id: string; performanceId: string; performance: { title: string; posterUrl: string | null } }[]>({
-    queryKey: ["favorites"],
-    queryFn: async () => {
-      const res = await fetch("/api/favorites");
-      if (res.status === 401) return [];
-      if (!res.ok) throw new Error("찜 목록 조회 실패");
-      const json = await res.json();
-      return json.data;
-    },
-  });
+const STORAGE_KEY = "pickshow-favorites";
+
+function getFavorites(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
 }
 
-export function useToggleFavorite() {
-  const queryClient = useQueryClient();
+function setFavorites(ids: string[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+  // 다른 컴포넌트에 변경 알림
+  window.dispatchEvent(new Event("favorites-changed"));
+}
 
-  const add = useMutation({
-    mutationFn: async (performanceId: string) => {
-      const res = await fetch("/api/favorites", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ performanceId }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error?.message ?? "찜 등록 실패");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["favorites"] });
-    },
-  });
+// 전역 구독 (useSyncExternalStore용)
+function subscribe(callback: () => void) {
+  window.addEventListener("favorites-changed", callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener("favorites-changed", callback);
+    window.removeEventListener("storage", callback);
+  };
+}
 
-  const remove = useMutation({
-    mutationFn: async (favoriteId: string) => {
-      const res = await fetch(`/api/favorites/${favoriteId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("찜 해제 실패");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["favorites"] });
-    },
-  });
+function getSnapshot(): string {
+  return localStorage.getItem(STORAGE_KEY) || "[]";
+}
 
-  return { add, remove };
+function getServerSnapshot(): string {
+  return "[]";
+}
+
+export function useLocalFavorites(performanceId: string) {
+  const raw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const ids: string[] = JSON.parse(raw);
+  const isFavorited = ids.includes(performanceId);
+
+  const toggle = useCallback(() => {
+    const current = getFavorites();
+    if (current.includes(performanceId)) {
+      setFavorites(current.filter((id) => id !== performanceId));
+    } else {
+      setFavorites([...current, performanceId]);
+    }
+  }, [performanceId]);
+
+  return { isFavorited, toggle };
+}
+
+export function useAllFavorites() {
+  const raw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const ids: string[] = JSON.parse(raw);
+  return ids;
 }

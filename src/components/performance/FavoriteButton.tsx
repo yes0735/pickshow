@@ -1,9 +1,7 @@
-// Gap Fix: F-1 — 찜 등록/해제 토글 버튼
+// 찜 등록/해제 — 로컬스토리지 기반 (로그인 불필요)
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useFavorites, useToggleFavorite } from "@/features/favorite/hooks";
-import { useRouter } from "next/navigation";
+import { useLocalFavorites } from "@/features/favorite/hooks";
 
 interface Props {
   performanceId: string;
@@ -11,29 +9,12 @@ interface Props {
 }
 
 export default function FavoriteButton({ performanceId, size = "sm" }: Props) {
-  const { data: session } = useSession();
-  const { data: favorites } = useFavorites();
-  const { add, remove } = useToggleFavorite();
-  const router = useRouter();
-
-  const favorite = favorites?.find((f) => f.performanceId === performanceId);
-  const isFavorited = !!favorite;
-  const isLoading = add.isPending || remove.isPending;
+  const { isFavorited, toggle } = useLocalFavorites(performanceId);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (!session?.user) {
-      router.push("/login");
-      return;
-    }
-
-    if (isFavorited && favorite) {
-      remove.mutate(favorite.id);
-    } else {
-      add.mutate(performanceId);
-    }
+    toggle();
   };
 
   const sizeClass = size === "md" ? "w-9 h-9" : "w-7 h-7";
@@ -41,12 +22,11 @@ export default function FavoriteButton({ performanceId, size = "sm" }: Props) {
   return (
     <button
       onClick={handleClick}
-      disabled={isLoading}
       className={`${sizeClass} flex items-center justify-center rounded-full transition-colors ${
         isFavorited
           ? "bg-pink text-white hover:bg-pink-dark"
           : "bg-white/80 text-text-muted hover:text-pink-dark hover:bg-white"
-      } disabled:opacity-50`}
+      }`}
       title={isFavorited ? "찜 해제" : "찜 등록"}
     >
       <svg
