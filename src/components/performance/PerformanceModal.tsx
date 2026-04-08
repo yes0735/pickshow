@@ -7,6 +7,7 @@ import type { Performance } from "@/types/performance";
 import { formatDateRange, formatPriceRange, genreLabel } from "@/lib/utils";
 import TicketLinkList from "./TicketLinkList";
 import FavoriteButton from "./FavoriteButton";
+import MyPerfButton from "./MyPerfButton";
 import StatusBadge from "./StatusBadge";
 
 interface Props {
@@ -102,6 +103,7 @@ export default function PerformanceModal({ performance }: Props) {
                   {performance.title}
                 </h1>
               </div>
+              <MyPerfButton performanceId={performance.id} size="md" />
               <FavoriteButton performanceId={performance.id} size="md" />
             </div>
 

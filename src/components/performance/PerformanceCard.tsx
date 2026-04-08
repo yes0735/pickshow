@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Performance } from "@/types/performance";
 import { formatDateRange, formatPriceRange } from "@/lib/utils";
 import FavoriteButton from "./FavoriteButton";
+import MyPerfButton from "./MyPerfButton";
 import StatusBadge from "./StatusBadge";
 
 interface Props {
@@ -33,7 +34,8 @@ export default function PerformanceCard({ performance }: Props) {
         <div className="absolute top-2 left-2">
           <StatusBadge status={performance.status} />
         </div>
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 right-2 flex gap-1">
+          <MyPerfButton performanceId={performance.id} />
           <FavoriteButton performanceId={performance.id} />
         </div>
       </div>
