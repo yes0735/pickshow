@@ -14,9 +14,9 @@ export default function Header() {
   const { data: session } = useSession();
   const pathname = usePathname();
 
-  // 페이지 이동 시 검색어+필터 초기화
+  // 페이지 이동 시 검색어+필터 초기화 (모달 URL은 제외)
   useEffect(() => {
-    if (pathname !== "/") {
+    if (pathname !== "/" && !pathname.startsWith("/performance/")) {
       setInput("");
       resetFilters();
       setFilter("q", undefined);
