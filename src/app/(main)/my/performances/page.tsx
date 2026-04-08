@@ -1,200 +1,91 @@
-// Design Ref: §5.4 — 내가 본 공연 목록 (별점, 한줄리뷰 표시)
+// 내공연 목록 — 로컬스토리지 기반
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-
-interface MyPerf {
-  id: string;
-  performanceId: string;
-  rating: number;
-  review: string | null;
-  seatInfo: string | null;
-  ticketSite: string | null;
-  viewedAt: string | null;
-  performance: { title: string; posterUrl: string | null; venue: string };
-}
+import { useAllMyPerfs, type MyPerfData } from "@/components/performance/MyPerfButton";
+import type { Performance } from "@/types/performance";
+import { formatDate } from "@/lib/utils";
 
 export default function MyPerformancesPage() {
-  const queryClient = useQueryClient();
+  const myPerfs = useAllMyPerfs();
 
-  const { data, isLoading } = useQuery<MyPerf[]>({
-    queryKey: ["my-performances"],
+  // 공연 상세 정보 조회
+  const { data: performances, isLoading } = useQuery<
+    (Performance & { myData: MyPerfData })[]
+  >({
+    queryKey: ["my-perf-details", myPerfs.map((p) => p.performanceId)],
     queryFn: async () => {
-      const res = await fetch("/api/my-performances");
-      if (!res.ok) return [];
-      const json = await res.json();
-      return json.data;
+      if (myPerfs.length === 0) return [];
+      const results = await Promise.all(
+        myPerfs.map(async (mp) => {
+          const res = await fetch(`/api/performances/${mp.performanceId}`);
+          if (!res.ok) return null;
+          const json = await res.json();
+          return { ...json.data, myData: mp } as Performance & { myData: MyPerfData };
+        })
+      );
+      return results.filter(Boolean) as (Performance & { myData: MyPerfData })[];
     },
+    enabled: myPerfs.length > 0,
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await fetch(`/api/my-performances/${id}`, { method: "DELETE" });
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["my-performances"] }),
-  });
+  const stars = (n: number) => "★".repeat(n) + "☆".repeat(5 - n);
 
-  // Gap Fix: F-6 — 내가본공연 등록 폼
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    performanceId: "",
-    rating: 5,
-    review: "",
-    seatInfo: "",
-    ticketSite: "",
-    viewedAt: "",
-  });
-
-  const addMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch("/api/my-performances", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          review: form.review || undefined,
-          seatInfo: form.seatInfo || undefined,
-          ticketSite: form.ticketSite || undefined,
-          viewedAt: form.viewedAt || undefined,
-        }),
-      });
-      if (!res.ok) throw new Error("등록 실패");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["my-performances"] });
-      setShowForm(false);
-      setForm({ performanceId: "", rating: 5, review: "", seatInfo: "", ticketSite: "", viewedAt: "" });
-    },
-  });
-
-  const stars = (rating: number) => "★".repeat(rating) + "☆".repeat(5 - rating);
+  const handleRemove = (performanceId: string) => {
+    const stored = JSON.parse(localStorage.getItem("pickshow-my-performances") || "[]");
+    const updated = stored.filter((d: MyPerfData) => d.performanceId !== performanceId);
+    localStorage.setItem("pickshow-my-performances", JSON.stringify(updated));
+    window.dispatchEvent(new Event("myperfs-changed"));
+  };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="max-w-3xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold">내가 본 공연</h1>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 rounded-lg bg-mint text-white text-sm font-medium hover:bg-mint-dark transition-colors"
-        >
-          {showForm ? "취소" : "등록하기"}
-        </button>
+        <div>
+          <h1 className="text-xl font-bold">내공연</h1>
+          <p className="text-xs text-text-muted mt-0.5">{myPerfs.length}개의 공연</p>
+        </div>
       </div>
 
-      {/* 등록 폼 */}
-      {showForm && (
-        <div className="border border-border rounded-xl p-4 mb-6 space-y-3">
-          <div>
-            <label className="block text-xs text-text-secondary mb-1">공연 ID (검색 후 복사)</label>
-            <input
-              type="text"
-              value={form.performanceId}
-              onChange={(e) => setForm((f) => ({ ...f, performanceId: e.target.value }))}
-              placeholder="공연 상세 URL에서 ID 복사"
-              className="w-full h-10 px-3 rounded-lg border border-border text-sm focus:outline-none focus:border-mint"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-text-secondary mb-1">별점</label>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setForm((f) => ({ ...f, rating: n }))}
-                  className={`text-2xl ${n <= form.rating ? "text-pink" : "text-border"}`}
-                >
-                  ★
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs text-text-secondary mb-1">한줄 리뷰</label>
-            <input
-              type="text"
-              value={form.review}
-              onChange={(e) => setForm((f) => ({ ...f, review: e.target.value }))}
-              maxLength={200}
-              placeholder="간단한 한줄 메모"
-              className="w-full h-10 px-3 rounded-lg border border-border text-sm focus:outline-none focus:border-mint"
-            />
-          </div>
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="block text-xs text-text-secondary mb-1">좌석 정보</label>
-              <input
-                type="text"
-                value={form.seatInfo}
-                onChange={(e) => setForm((f) => ({ ...f, seatInfo: e.target.value }))}
-                placeholder="예: 1층 A구역 3열"
-                className="w-full h-10 px-3 rounded-lg border border-border text-sm focus:outline-none focus:border-mint"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-xs text-text-secondary mb-1">예매처</label>
-              <input
-                type="text"
-                value={form.ticketSite}
-                onChange={(e) => setForm((f) => ({ ...f, ticketSite: e.target.value }))}
-                placeholder="인터파크, YES24 등"
-                className="w-full h-10 px-3 rounded-lg border border-border text-sm focus:outline-none focus:border-mint"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs text-text-secondary mb-1">관람 날짜</label>
-            <input
-              type="date"
-              value={form.viewedAt}
-              onChange={(e) => setForm((f) => ({ ...f, viewedAt: e.target.value }))}
-              className="w-full h-10 px-3 rounded-lg border border-border text-sm focus:outline-none focus:border-mint"
-            />
-          </div>
-          <button
-            onClick={() => addMutation.mutate()}
-            disabled={!form.performanceId || addMutation.isPending}
-            className="w-full h-10 rounded-lg bg-pink text-white text-sm font-medium hover:bg-pink-dark transition-colors disabled:opacity-50"
-          >
-            {addMutation.isPending ? "등록 중..." : "등록하기"}
-          </button>
-        </div>
-      )}
-
-      {isLoading && (
+      {/* 로딩 */}
+      {isLoading && myPerfs.length > 0 && (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-32 rounded-xl bg-bg-secondary animate-pulse" />
+            <div key={i} className="h-32 rounded-2xl bg-bg-secondary animate-pulse" />
           ))}
         </div>
       )}
 
-      {!isLoading && (!data || data.length === 0) && (
+      {/* 빈 상태 */}
+      {myPerfs.length === 0 && (
         <div className="text-center py-20">
-          <p className="text-text-muted text-lg mb-2">아직 등록한 공연이 없습니다</p>
+          <div className="text-4xl mb-3">✓</div>
+          <p className="text-text-muted text-sm mb-1">등록한 공연이 없습니다</p>
+          <p className="text-text-muted text-xs mb-4">공연 카드의 ✓ 버튼으로 등록해보세요</p>
           <Link href="/" className="text-sm text-mint-dark hover:underline">
             공연 검색하러 가기
           </Link>
         </div>
       )}
 
-      {data && data.length > 0 && (
+      {/* 목록 */}
+      {performances && performances.length > 0 && (
         <div className="space-y-3">
-          {data.map((item) => (
+          {performances.map((item) => (
             <div
               key={item.id}
-              className="flex gap-4 p-4 rounded-xl border border-border bg-white"
+              className="flex gap-4 p-4 rounded-2xl border border-border bg-white"
             >
+              {/* 포스터 */}
               <Link
-                href={`/performance/${item.performanceId}`}
-                className="w-20 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-bg-secondary"
+                href={`/performance/${item.id}`}
+                className="w-20 h-28 flex-shrink-0 rounded-xl overflow-hidden bg-bg-secondary"
               >
-                {item.performance.posterUrl ? (
+                {item.posterUrl ? (
                   <img
-                    src={item.performance.posterUrl}
-                    alt={item.performance.title}
+                    src={item.posterUrl}
+                    alt={item.title}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -204,26 +95,37 @@ export default function MyPerformancesPage() {
                 )}
               </Link>
 
+              {/* 정보 */}
               <div className="flex-1 min-w-0">
-                <Link href={`/performance/${item.performanceId}`}>
+                <Link href={`/performance/${item.id}`}>
                   <h3 className="font-semibold text-sm truncate hover:text-mint-dark transition-colors">
-                    {item.performance.title}
+                    {item.title}
                   </h3>
                 </Link>
-                <p className="text-xs text-text-muted">{item.performance.venue}</p>
-                <p className="text-sm text-pink-dark mt-1">{stars(item.rating)}</p>
-                {item.review && (
-                  <p className="text-xs text-text-secondary mt-1 line-clamp-2">
-                    {item.review}
+                <p className="text-xs text-text-muted mb-1.5">{item.venue}</p>
+
+                {/* 별점 */}
+                <p className="text-sm text-pink-dark mb-1">{stars(item.myData.rating)}</p>
+
+                {/* 한줄 리뷰 */}
+                {item.myData.review && (
+                  <p className="text-xs text-text-secondary mb-1.5 line-clamp-2">
+                    &ldquo;{item.myData.review}&rdquo;
                   </p>
                 )}
-                <div className="flex gap-3 mt-2 text-[10px] text-text-muted">
-                  {item.seatInfo && <span>좌석: {item.seatInfo}</span>}
-                  {item.ticketSite && <span>예매처: {item.ticketSite}</span>}
+
+                {/* 메타 정보 */}
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-text-muted">
+                  {item.myData.viewedAt && (
+                    <span>관람 {formatDate(new Date(item.myData.viewedAt))}</span>
+                  )}
+                  {item.myData.seatInfo && <span>좌석 {item.myData.seatInfo}</span>}
+                  {item.myData.ticketSite && <span>{item.myData.ticketSite}</span>}
                 </div>
+
+                {/* 삭제 */}
                 <button
-                  onClick={() => deleteMutation.mutate(item.id)}
-                  disabled={deleteMutation.isPending}
+                  onClick={() => handleRemove(item.id)}
                   className="mt-2 px-3 py-1 rounded-lg border border-border text-xs text-text-muted hover:text-pink-dark hover:border-pink transition-colors"
                 >
                   삭제
