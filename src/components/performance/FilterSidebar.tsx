@@ -230,14 +230,8 @@ function AccordionSection({
   );
 }
 
-const PRICE_RANGES = [
-  { label: "무료", min: 0, max: 0 },
-  { label: "~3만원", min: undefined, max: 30000 },
-  { label: "3~5만원", min: 30000, max: 50000 },
-  { label: "5~10만원", min: 50000, max: 100000 },
-  { label: "10~15만원", min: 100000, max: 150000 },
-  { label: "15만원~", min: 150000, max: undefined },
-] as const;
+const PRICE_MAX = 200000;
+const PRICE_STEP = 10000;
 
 function PriceRangeSelector({
   minPrice,
@@ -248,30 +242,83 @@ function PriceRangeSelector({
   maxPrice: number | undefined;
   onChange: (min: number | undefined, max: number | undefined) => void;
 }) {
-  const isSelected = (range: (typeof PRICE_RANGES)[number]) =>
-    minPrice === range.min && maxPrice === range.max;
+  const min = minPrice ?? 0;
+  const max = maxPrice ?? PRICE_MAX;
+  const active = minPrice !== undefined || maxPrice !== undefined;
+
+  const formatWon = (v: number) =>
+    v >= PRICE_MAX ? "20만원+" : v === 0 ? "0원" : `${(v / 10000).toFixed(0)}만원`;
 
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {PRICE_RANGES.map((range) => (
-        <button
-          key={range.label}
-          onClick={() => {
-            if (isSelected(range)) {
-              onChange(undefined, undefined);
-            } else {
-              onChange(range.min, range.max);
-            }
+    <div className="space-y-3">
+      {/* 가격 표시 */}
+      <div className="flex justify-between text-xs font-medium">
+        <span className={active ? "text-mint-dark" : "text-text-muted"}>
+          {formatWon(min)}
+        </span>
+        <span className={active ? "text-mint-dark" : "text-text-muted"}>
+          {formatWon(max)}
+        </span>
+      </div>
+
+      {/* 듀얼 슬라이더 */}
+      <div className="relative h-6 flex items-center">
+        {/* 트랙 배경 */}
+        <div className="absolute w-full h-1.5 rounded-full bg-border-light" />
+        {/* 활성 트랙 */}
+        <div
+          className="absolute h-1.5 rounded-full bg-mint-dark"
+          style={{
+            left: `${(min / PRICE_MAX) * 100}%`,
+            right: `${100 - (max / PRICE_MAX) * 100}%`,
           }}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-            isSelected(range)
-              ? "bg-mint-dark text-white"
-              : "bg-bg-secondary text-text-secondary hover:bg-border-light"
-          }`}
-        >
-          {range.label}
-        </button>
-      ))}
+        />
+        {/* 최소 슬라이더 */}
+        <input
+          type="range"
+          aria-label="최소 가격"
+          min={0}
+          max={PRICE_MAX}
+          step={PRICE_STEP}
+          value={min}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            const newMin = v >= max ? max - PRICE_STEP : v;
+            onChange(
+              newMin <= 0 ? undefined : newMin,
+              maxPrice
+            );
+          }}
+          className="absolute w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-mint-dark [&::-webkit-slider-thumb]:shadow-sm [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-mint-dark [&::-moz-range-thumb]:cursor-pointer"
+        />
+        {/* 최대 슬라이더 */}
+        <input
+          type="range"
+          aria-label="최대 가격"
+          min={0}
+          max={PRICE_MAX}
+          step={PRICE_STEP}
+          value={max}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            const newMax = v <= min ? min + PRICE_STEP : v;
+            onChange(
+              minPrice,
+              newMax >= PRICE_MAX ? undefined : newMax
+            );
+          }}
+          className="absolute w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-pink-dark [&::-webkit-slider-thumb]:shadow-sm [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-pink-dark [&::-moz-range-thumb]:cursor-pointer"
+        />
+      </div>
+
+      {/* 눈금 */}
+      <div className="flex justify-between text-[9px] text-text-muted px-0.5">
+        <span>0</span>
+        <span>5만</span>
+        <span>10만</span>
+        <span>15만</span>
+        <span>20만+</span>
+      </div>
     </div>
   );
 }
