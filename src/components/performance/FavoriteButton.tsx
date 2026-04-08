@@ -24,7 +24,7 @@ export default function FavoriteButton({ performanceId, size = "sm" }: Props) {
       onClick={handleClick}
       className={`${sizeClass} flex items-center justify-center rounded-full transition-colors ${
         isFavorited
-          ? "bg-pink text-white hover:bg-pink-dark"
+          ? "bg-red-500 text-white hover:bg-red-600"
           : "bg-white/80 text-text-muted hover:text-pink-dark hover:bg-white"
       }`}
       title={isFavorited ? "찜 해제" : "찜 등록"}
