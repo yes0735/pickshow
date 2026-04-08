@@ -43,7 +43,7 @@ export default function FavoritesPage() {
         </div>
       )}
 
-      {favoriteIds.length === 0 && (
+      {mounted && favoriteIds.length === 0 && (
         <div className="text-center py-20">
           <p className="text-text-muted text-lg mb-2">찜한 공연이 없습니다</p>
           <Link href="/" className="text-sm text-mint-dark hover:underline">

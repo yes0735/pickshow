@@ -57,7 +57,7 @@ export default function MyPerformancesPage() {
       )}
 
       {/* 빈 상태 */}
-      {!isLoading && myPerfs.length === 0 && (
+      {mounted && !isLoading && myPerfs.length === 0 && (
         <div className="text-center py-20">
           <p className="text-text-muted text-lg mb-2">등록한 공연이 없습니다</p>
           <Link href="/" className="text-sm text-mint-dark hover:underline">
