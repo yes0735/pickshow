@@ -6,7 +6,7 @@ import {
   generatePerformanceMetadata,
   generateEventJsonLd,
 } from "@/lib/seo";
-import { formatDateRange, formatPriceRange } from "@/lib/utils";
+import { formatDateRange, formatPriceRange, genreLabel } from "@/lib/utils";
 import TicketLinkList from "@/components/performance/TicketLinkList";
 import Link from "next/link";
 
@@ -75,7 +75,7 @@ export default async function PerformanceDetailPage({
         <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
           <div>
             <span className="text-text-muted text-xs">장르</span>
-            <p className="font-medium">{performance.genre}</p>
+            <p className="font-medium">{genreLabel(performance.genre)}</p>
           </div>
           <div>
             <span className="text-text-muted text-xs">공연상태</span>

@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import type { Performance } from "@/types/performance";
-import { formatDateRange, formatPriceRange } from "@/lib/utils";
+import { formatDateRange, formatPriceRange, genreLabel } from "@/lib/utils";
 import StatusBadge from "./StatusBadge";
 
 interface Props {
@@ -34,7 +34,7 @@ export default function PerformanceListItem({ performance }: Props) {
       <div className="flex-1 min-w-0 flex flex-col justify-center">
         <div className="flex items-center gap-2 mb-1">
           <StatusBadge status={performance.status} />
-          <span className="text-[10px] text-text-muted">{performance.genre}</span>
+          <span className="text-[10px] text-text-muted">{genreLabel(performance.genre)}</span>
         </div>
         <h3 className="font-semibold text-sm leading-tight truncate mb-0.5">
           {performance.title}

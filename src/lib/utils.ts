@@ -49,3 +49,17 @@ export function getRelativeTime(date: Date): string {
   if (days < 7) return `${days}일 전`;
   return formatDate(date);
 }
+
+const GENRE_LABELS: Record<string, string> = {
+  musical: "뮤지컬",
+  theater: "연극",
+  concert: "콘서트",
+  classic: "클래식",
+  dance: "무용",
+  korean: "국악",
+  etc: "기타",
+};
+
+export function genreLabel(code: string): string {
+  return GENRE_LABELS[code] ?? code;
+}

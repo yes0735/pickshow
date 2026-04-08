@@ -4,7 +4,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Performance } from "@/types/performance";
-import { formatDateRange, formatPriceRange } from "@/lib/utils";
+import { formatDateRange, formatPriceRange, genreLabel } from "@/lib/utils";
 import TicketLinkList from "./TicketLinkList";
 import FavoriteButton from "./FavoriteButton";
 import StatusBadge from "./StatusBadge";
@@ -96,7 +96,7 @@ export default function PerformanceModal({ performance }: Props) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
                   <StatusBadge status={performance.status} size="md" />
-                  <span className="text-[11px] text-text-muted">{performance.genre}</span>
+                  <span className="text-[11px] text-text-muted">{genreLabel(performance.genre)}</span>
                 </div>
                 <h1 className="text-lg sm:text-xl font-bold leading-tight">
                   {performance.title}
