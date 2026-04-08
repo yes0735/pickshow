@@ -55,8 +55,8 @@ export default function Header() {
 
           <nav className="flex items-center gap-1 sm:gap-5">
             <Link href="/community" className={navLinkClass("/community")}>
-              <span className="hidden sm:inline">커뮤니티</span>
-              <span className="sm:hidden text-xs">커뮤니티</span>
+              <span className="hidden sm:inline">게시판</span>
+              <span className="sm:hidden text-xs">게시판</span>
             </Link>
             <Link href="/my/favorites" className={navLinkClass("/my/favorites")}>
               <span className="hidden sm:inline">찜목록</span>
