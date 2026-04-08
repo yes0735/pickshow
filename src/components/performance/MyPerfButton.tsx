@@ -2,6 +2,7 @@
 "use client";
 
 import { useSyncExternalStore, useCallback, useState } from "react";
+import { createPortal } from "react-dom";
 
 export interface MyPerfData {
   performanceId: string;
@@ -124,8 +125,8 @@ export default function MyPerfButton({ performanceId, size = "sm" }: Props) {
         </svg>
       </button>
 
-      {/* 등록 모달 */}
-      {showModal && (
+      {/* 등록 모달 — Portal로 Link 바깥에 렌더링 */}
+      {showModal && typeof document !== "undefined" && createPortal(
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center p-4"
           onClick={(e) => {
@@ -245,7 +246,8 @@ export default function MyPerfButton({ performanceId, size = "sm" }: Props) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
