@@ -121,85 +121,101 @@ export default function PostDetailPage() {
       </Link>
 
       {/* 게시글 */}
-      <article className="border border-border rounded-xl p-6 mb-6">
-        <h1 className="text-lg font-bold mb-2">{post.title}</h1>
-        <div className="flex gap-3 text-xs text-text-muted mb-4">
-          <span>{post.authorNickname}</span>
-          <span>{getRelativeTime(new Date(post.createdAt))}</span>
-          <span>조회 {post.viewCount}</span>
+      <article className="bg-white rounded-2xl border border-border p-5 sm:p-6 mb-6">
+        {/* 카테고리 + 메타 */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="w-8 h-8 rounded-full bg-mint-light text-mint-dark flex items-center justify-center text-sm font-bold">
+              {post.authorNickname.charAt(0)}
+            </span>
+            <div>
+              <p className="text-sm font-medium">{post.authorNickname}</p>
+              <p className="text-[11px] text-text-muted">
+                {getRelativeTime(new Date(post.createdAt))} · 조회 {post.viewCount}
+              </p>
+            </div>
+          </div>
+          {isAuthor && (
+            <button
+              onClick={() => deletePost.mutate()}
+              disabled={deletePost.isPending}
+              className="px-3 py-1.5 rounded-lg text-xs text-text-muted hover:text-pink-dark hover:bg-pink-light transition-colors"
+            >
+              삭제
+            </button>
+          )}
         </div>
+
+        <h1 className="text-lg font-bold mb-4">{post.title}</h1>
+
         <div
-          className="text-sm leading-relaxed whitespace-pre-line"
+          className="text-sm leading-relaxed whitespace-pre-line text-text-secondary"
           dangerouslySetInnerHTML={{
             __html: DOMPurify.sanitize(post.content, { ALLOWED_TAGS: [] }),
           }}
         />
-
-        {isAuthor && (
-          <div className="flex gap-2 mt-4 pt-4 border-t border-border">
-            <button
-              onClick={() => deletePost.mutate()}
-              disabled={deletePost.isPending}
-              className="px-3 py-1 rounded-lg border border-pink text-pink-dark text-xs hover:bg-pink-light transition-colors"
-            >
-              삭제
-            </button>
-          </div>
-        )}
       </article>
 
       {/* 댓글 */}
       <section>
-        <h2 className="text-sm font-semibold mb-4">댓글 {post.comments.length}개</h2>
+        <h2 className="flex items-center gap-2 text-sm font-semibold mb-4">
+          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          댓글 {post.comments.length}개
+        </h2>
 
         {post.comments.length > 0 && (
-          <div className="space-y-3 mb-6">
+          <div className="space-y-2.5 mb-6">
             {post.comments.map((c) => (
-              <div key={c.id} className="p-3 rounded-lg bg-bg-secondary">
-                <div className="flex gap-2 text-xs text-text-muted mb-1">
-                  <span className="font-medium text-foreground">{c.authorNickname}</span>
-                  <span>{getRelativeTime(new Date(c.createdAt))}</span>
+              <div key={c.id} className="p-3.5 rounded-xl bg-bg-secondary">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="w-6 h-6 rounded-full bg-border-light text-text-muted flex items-center justify-center text-[10px] font-bold">
+                    {c.authorNickname.charAt(0)}
+                  </span>
+                  <span className="text-xs font-medium">{c.authorNickname}</span>
+                  <span className="text-[11px] text-text-muted">{getRelativeTime(new Date(c.createdAt))}</span>
                 </div>
-                <p className="text-sm">{c.content}</p>
+                <p className="text-sm pl-8">{c.content}</p>
               </div>
             ))}
           </div>
         )}
 
         {/* 댓글 작성 폼 */}
-        <div className="border border-border rounded-xl p-4">
+        <div className="bg-white rounded-2xl border border-border p-4">
           {!session?.user && (
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-3">
               <input
                 type="text"
                 value={commentNickname}
                 onChange={(e) => setCommentNickname(e.target.value)}
                 placeholder="닉네임"
-                className="w-24 h-8 px-2 rounded border border-border text-xs focus:outline-none focus:border-mint"
+                className="flex-1 h-9 px-3 rounded-xl border border-border text-xs focus:outline-none focus:border-mint-dark"
               />
               <input
                 type="password"
                 value={commentPassword}
                 onChange={(e) => setCommentPassword(e.target.value)}
                 placeholder="비밀번호"
-                className="w-24 h-8 px-2 rounded border border-border text-xs focus:outline-none focus:border-mint"
+                className="flex-1 h-9 px-3 rounded-xl border border-border text-xs focus:outline-none focus:border-mint-dark"
               />
             </div>
           )}
-          <textarea
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder="댓글을 작성해주세요"
-            rows={3}
-            className="w-full px-3 py-2 rounded-lg border border-border text-sm resize-none focus:outline-none focus:border-mint"
-          />
-          <div className="flex justify-end mt-2">
+          <div className="flex gap-2 items-end">
+            <textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="댓글을 작성해주세요"
+              rows={2}
+              className="flex-1 px-3 py-2.5 rounded-xl border border-border text-sm resize-none focus:outline-none focus:border-mint-dark"
+            />
             <button
               onClick={() => addComment.mutate()}
               disabled={!commentText.trim() || addComment.isPending}
-              className="px-4 py-2 rounded-lg bg-mint text-white text-xs font-medium hover:bg-mint-dark transition-colors disabled:opacity-50"
+              className="h-[52px] px-4 rounded-xl bg-mint-dark text-white text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 flex-shrink-0"
             >
-              {addComment.isPending ? "등록 중..." : "댓글 등록"}
+              {addComment.isPending ? "..." : "등록"}
             </button>
           </div>
         </div>
