@@ -111,29 +111,14 @@ export default function FilterSidebar() {
             title="가격대"
             active={filters.minPrice !== undefined || filters.maxPrice !== undefined}
           >
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                placeholder="최소"
-                aria-label="최소 가격"
-                value={filters.minPrice ?? ""}
-                onChange={(e) =>
-                  setFilter("minPrice", e.target.value ? Number(e.target.value) : undefined)
-                }
-                className="w-full h-9 px-2.5 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark"
-              />
-              <span className="text-text-muted text-xs flex-shrink-0">~</span>
-              <input
-                type="number"
-                placeholder="최대"
-                aria-label="최대 가격"
-                value={filters.maxPrice ?? ""}
-                onChange={(e) =>
-                  setFilter("maxPrice", e.target.value ? Number(e.target.value) : undefined)
-                }
-                className="w-full h-9 px-2.5 rounded-lg border border-border text-xs focus:outline-none focus:border-mint-dark"
-              />
-            </div>
+            <PriceRangeSelector
+              minPrice={filters.minPrice}
+              maxPrice={filters.maxPrice}
+              onChange={(min, max) => {
+                setFilter("minPrice", min);
+                setFilter("maxPrice", max);
+              }}
+            />
           </AccordionSection>
 
           {/* 관람연령 */}
@@ -241,6 +226,52 @@ function AccordionSection({
         </svg>
       </button>
       {open && <div className="pb-3">{children}</div>}
+    </div>
+  );
+}
+
+const PRICE_RANGES = [
+  { label: "무료", min: 0, max: 0 },
+  { label: "~3만원", min: undefined, max: 30000 },
+  { label: "3~5만원", min: 30000, max: 50000 },
+  { label: "5~10만원", min: 50000, max: 100000 },
+  { label: "10~15만원", min: 100000, max: 150000 },
+  { label: "15만원~", min: 150000, max: undefined },
+] as const;
+
+function PriceRangeSelector({
+  minPrice,
+  maxPrice,
+  onChange,
+}: {
+  minPrice: number | undefined;
+  maxPrice: number | undefined;
+  onChange: (min: number | undefined, max: number | undefined) => void;
+}) {
+  const isSelected = (range: (typeof PRICE_RANGES)[number]) =>
+    minPrice === range.min && maxPrice === range.max;
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {PRICE_RANGES.map((range) => (
+        <button
+          key={range.label}
+          onClick={() => {
+            if (isSelected(range)) {
+              onChange(undefined, undefined);
+            } else {
+              onChange(range.min, range.max);
+            }
+          }}
+          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            isSelected(range)
+              ? "bg-mint-dark text-white"
+              : "bg-bg-secondary text-text-secondary hover:bg-border-light"
+          }`}
+        >
+          {range.label}
+        </button>
+      ))}
     </div>
   );
 }
