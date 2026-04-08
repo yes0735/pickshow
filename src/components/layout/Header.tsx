@@ -147,14 +147,7 @@ export default function Header() {
                 </div>
               )}
             </div>
-          ) : (
-            <Link
-              href="/login"
-              className="px-4 py-2 rounded-full bg-mint text-white text-sm font-medium hover:bg-mint-dark transition-colors"
-            >
-              로그인
-            </Link>
-          )}
+          ) : null}
         </nav>
       </div>
     </header>
