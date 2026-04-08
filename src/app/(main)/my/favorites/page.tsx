@@ -3,11 +3,15 @@
 
 import { useAllFavorites, useLocalFavorites } from "@/features/favorite/hooks";
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { Performance } from "@/types/performance";
 
 export default function FavoritesPage() {
-  const favoriteIds = useAllFavorites();
+  const rawFavoriteIds = useAllFavorites();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const favoriteIds = mounted ? rawFavoriteIds : [];
 
   // 찜한 공연 ID로 상세 정보 조회
   const { data: performances, isLoading } = useQuery<Performance[]>({

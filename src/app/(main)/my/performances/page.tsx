@@ -2,13 +2,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAllMyPerfs, type MyPerfData } from "@/components/performance/MyPerfButton";
 import type { Performance } from "@/types/performance";
 import { formatDate } from "@/lib/utils";
 
 export default function MyPerformancesPage() {
-  const myPerfs = useAllMyPerfs();
+  const rawMyPerfs = useAllMyPerfs();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const myPerfs = mounted ? rawMyPerfs : [];
 
   // 공연 상세 정보 조회
   const { data: performances, isLoading } = useQuery<
@@ -18,7 +22,7 @@ export default function MyPerformancesPage() {
     queryFn: async () => {
       if (myPerfs.length === 0) return [];
       const results = await Promise.all(
-        myPerfs.map(async (mp) => {
+        myPerfs.filter((mp) => mp.performanceId).map(async (mp) => {
           const res = await fetch(`/api/performances/${mp.performanceId}`);
           if (!res.ok) return null;
           const json = await res.json();
