@@ -130,7 +130,7 @@ export default function BoardListPage() {
               className="block hover:bg-bg-secondary/50 transition-colors"
             >
               {/* 데스크톱 */}
-              <div className="hidden sm:grid grid-cols-[1fr_80px_80px_60px] gap-2 px-4 py-3 items-center">
+              <div className="hidden sm:grid grid-cols-[1fr_80px_80px_60px] gap-2 px-4 py-2 items-center">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className={`text-[11px] font-medium flex-shrink-0 ${CATEGORY_COLORS[post.category] ?? "text-text-muted"}`}>
                     [{CATEGORIES.find((c) => c.code === post.category)?.label ?? post.category}]
@@ -148,7 +148,7 @@ export default function BoardListPage() {
               </div>
 
               {/* 모바일 */}
-              <div className="sm:hidden px-4 py-3">
+              <div className="sm:hidden px-4 py-2">
                 <div className="flex items-center gap-1.5 mb-1">
                   <span className={`text-[10px] font-medium ${CATEGORY_COLORS[post.category] ?? "text-text-muted"}`}>
                     [{CATEGORIES.find((c) => c.code === post.category)?.label ?? post.category}]
