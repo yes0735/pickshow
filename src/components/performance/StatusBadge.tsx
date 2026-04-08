@@ -14,7 +14,7 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
     className: "bg-pink-light text-pink-dark border border-pink-dark/20",
   },
   completed: {
-    label: "공연완료",
+    label: "공연종료",
     className: "bg-bg-secondary text-text-muted border border-border",
   },
 };

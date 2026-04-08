@@ -208,7 +208,7 @@ export async function syncPerformancesFromKopis() {
     page++;
   }
 
-  // 공연상태 자동 업데이트: 시작일이 지난 공연 → 공연중, 종료일이 지난 공연 → 공연완료
+  // 공연상태 자동 업데이트: 시작일이 지난 공연 → 공연중, 종료일이 지난 공연 → 공연종료
   await updatePerformanceStatuses();
 
   return { totalSynced, totalSkipped };
@@ -227,7 +227,7 @@ export async function updatePerformanceStatuses() {
     data: { status: "ongoing" },
   });
 
-  // 공연중/공연예정 → 공연완료 (종료일 < 오늘)
+  // 공연중/공연예정 → 공연종료 (종료일 < 오늘)
   const toCompleted = await prisma.performance.updateMany({
     where: {
       status: { in: ["upcoming", "ongoing"] },

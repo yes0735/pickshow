@@ -170,7 +170,7 @@ function mapStatus(status: string): string {
   switch (status) {
     case "upcoming": return "공연예정";
     case "ongoing": return "공연중";
-    case "completed": return "공연완료";
+    case "completed": return "공연종료";
     default: return status;
   }
 }
