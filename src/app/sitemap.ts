@@ -11,7 +11,13 @@ import { GENRE_SLUGS, venueToSlug } from "@/lib/seo/slug";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://pickshow.kr";
 // Google 단일 sitemap 제한: 50,000 URL. 안전 마진 10%.
+// 공연 수가 ~40K에 도달하면 generateSitemaps() 기반 분할로 전환 필요.
 const MAX_PERFORMANCES = 45_000;
+
+// Plan SC: FR-12 — sitemap은 하루 1회 재생성 (Vercel Edge Cache 활용)
+// 공연 데이터는 KOPIS 배치(매일 01:00 KST)로 갱신되므로 1일 TTL이 충분하다.
+// 이로써 Google/Naver/Bing 봇이 sitemap을 자주 요청해도 DB 쿼리는 24h에 1회.
+export const revalidate = 86400; // 24시간
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
