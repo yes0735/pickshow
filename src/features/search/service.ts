@@ -145,14 +145,18 @@ export async function getPerformancesByGenre(
 
 /**
  * Plan SC: FR-10 — 공연장 랜딩 페이지 데이터
- * venue는 exact match (Prisma case-insensitive 옵션 사용).
+ * venue는 exact match.
+ * 활성 공연(ongoing/upcoming) 우선, 없으면 최근 종료 공연 fallback.
+ * → 과거 venue 페이지도 thin content가 되지 않도록 보장.
  */
 export async function getPerformancesByVenue(
   venue: string,
   opts: { limit?: number } = {},
 ) {
   const limit = opts.limit ?? 50;
-  const items = await prisma.performance.findMany({
+
+  // 1단계: 활성 공연
+  const active = await prisma.performance.findMany({
     where: {
       venue,
       status: { in: ["ongoing", "upcoming"] },
@@ -160,12 +164,23 @@ export async function getPerformancesByVenue(
     orderBy: [{ startDate: "asc" }, { title: "asc" }],
     take: limit,
   });
-  return items.map(serializePerformance);
+
+  if (active.length > 0) {
+    return active.map(serializePerformance);
+  }
+
+  // 2단계: fallback — 최근 종료 공연
+  const completed = await prisma.performance.findMany({
+    where: { venue },
+    orderBy: [{ endDate: "desc" }, { title: "asc" }],
+    take: limit,
+  });
+  return completed.map(serializePerformance);
 }
 
 /**
  * 활성 공연을 가진 공연장 이름 전체 목록.
- * /venue/[slug] generateStaticParams 및 slug → venue 역방향 조회에 사용.
+ * /venue/[slug] generateStaticParams 에 사용.
  */
 export async function getAllActiveVenues(): Promise<string[]> {
   const rows = await prisma.performance.findMany({
@@ -178,30 +193,19 @@ export async function getAllActiveVenues(): Promise<string[]> {
 }
 
 /**
- * Plan SC: FR-12 — sitemap 분할용 cursor 기반 페이지네이션.
- * OFFSET 대신 WHERE id > cursor 방식으로 대량 데이터에서도 효율적.
+ * 모든 공연장 이름 (활성 + 종료 포함).
+ * venue slug 역방향 조회의 fallback으로 사용 — 빌드/런타임 DB 상태 차이 대응.
+ * 과거 공연 venue도 검색 유입 유지를 위해 인덱싱 허용.
  */
-export async function getPerformanceIdsForSitemap(opts: {
-  cursor?: string;
-  limit: number;
-}): Promise<Array<{ id: string; updatedAt: Date }>> {
+export async function getAllVenueNames(): Promise<string[]> {
   const rows = await prisma.performance.findMany({
-    select: { id: true, updatedAt: true },
-    orderBy: { id: "asc" },
-    take: opts.limit,
-    ...(opts.cursor
-      ? { cursor: { id: opts.cursor }, skip: 1 }
-      : {}),
+    select: { venue: true },
+    distinct: ["venue"],
+    orderBy: { venue: "asc" },
   });
-  return rows;
+  return rows.map((r) => r.venue).filter(Boolean);
 }
 
-/**
- * sitemap 분할 개수 계산용 — 총 공연 개수.
- */
-export async function countAllPerformances(): Promise<number> {
-  return prisma.performance.count();
-}
 
 function serializePerformance(p: {
   id: string;

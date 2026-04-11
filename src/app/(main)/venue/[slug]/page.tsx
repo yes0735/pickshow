@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   getAllActiveVenues,
+  getAllVenueNames,
   getPerformancesByVenue,
 } from "@/features/search/service";
 import {
@@ -38,12 +39,32 @@ export async function generateStaticParams() {
 
 /**
  * slug → venue 역방향 조회.
- * venueToSlug은 해시 기반이라 역변환 불가 → 전체 목록 스캔 후 일치 항목 반환.
- * 활성 공연장은 보통 수백 개 수준이므로 O(N) 허용.
+ * 1단계: 활성 공연장에서 검색 (빠른 경로)
+ * 2단계: 전체 공연장 (종료 포함)에서 검색 — 빌드/런타임 DB 상태 차이 대응 +
+ *         과거 공연 venue의 검색 유입 유지.
+ * 활성 공연장은 수백 개, 전체도 1-2천 개 수준이므로 O(N) 허용.
  */
 async function resolveVenueFromSlug(slug: string): Promise<string | null> {
-  const venues = await getAllActiveVenues();
-  return venues.find((v) => venueToSlug(v) === slug) ?? null;
+  const activeVenues = await getAllActiveVenues();
+  const fromActive = activeVenues.find((v) => venueToSlug(v) === slug);
+  if (fromActive) return fromActive;
+
+  // Fallback: 종료 공연도 포함한 전체 조회
+  const allVenues = await getAllVenueNames();
+  return allVenues.find((v) => venueToSlug(v) === slug) ?? null;
+}
+
+/**
+ * Next.js 16은 한글 URL path의 `params.slug` 를 URL-encoded 상태로 전달한다.
+ * (예: `/venue/영화의전당` → `params.slug = "%EC%98%81%ED%99%94%EC%9D%98%EC%A0%84%EB%8B%B9"`)
+ * decodeURIComponent + NFC 정규화를 통해 한글 원본 slug로 복원한다.
+ */
+function normalizeSlug(raw: string): string {
+  try {
+    return decodeURIComponent(raw).normalize("NFC");
+  } catch {
+    return raw;
+  }
 }
 
 export async function generateMetadata({
@@ -51,7 +72,8 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = normalizeSlug(rawSlug);
   const venue = await resolveVenueFromSlug(slug);
   if (!venue) return { title: "공연장을 찾을 수 없습니다" };
 
@@ -69,7 +91,8 @@ export default async function VenueLandingPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = normalizeSlug(rawSlug);
   const venue = await resolveVenueFromSlug(slug);
   if (!venue) notFound();
 
