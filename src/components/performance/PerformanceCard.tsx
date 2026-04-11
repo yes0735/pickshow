@@ -1,9 +1,12 @@
 // Design Ref: §5.4 — 공연 카드 (포스터, 제목, 기간, 장소, 가격, 찜)
+// Plan SC: FR-02 — next/image (CWV LCP 최적화, 홈 SSR 카드가 실제 LCP 요소)
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { Performance } from "@/types/performance";
 import { formatDateRange, formatPriceRange } from "@/lib/utils";
+import { isOptimizableHost } from "@/lib/image-host";
 import FavoriteButton from "./FavoriteButton";
 import MyPerfButton from "./MyPerfButton";
 import StatusBadge from "./StatusBadge";
@@ -21,10 +24,13 @@ export default function PerformanceCard({ performance }: Props) {
     >
       <div className="aspect-[3/4] bg-bg-secondary relative overflow-hidden">
         {performance.posterUrl ? (
-          <img
+          <Image
             src={performance.posterUrl}
             alt={performance.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            unoptimized={!isOptimizableHost(performance.posterUrl)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-text-muted text-sm">

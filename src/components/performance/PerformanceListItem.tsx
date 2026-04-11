@@ -1,9 +1,12 @@
 // Design Ref: §5.4 — 공연 리스트형 행
+// Plan SC: FR-02 — next/image
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { Performance } from "@/types/performance";
 import { formatDateRange, formatPriceRange, genreLabel } from "@/lib/utils";
+import { isOptimizableHost } from "@/lib/image-host";
 import StatusBadge from "./StatusBadge";
 
 interface Props {
@@ -17,12 +20,15 @@ export default function PerformanceListItem({ performance }: Props) {
       scroll={false}
       className="flex gap-4 p-3 rounded-xl border border-border bg-white hover:shadow-md transition-shadow"
     >
-      <div className="w-20 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-bg-secondary">
+      <div className="relative w-20 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-bg-secondary">
         {performance.posterUrl ? (
-          <img
+          <Image
             src={performance.posterUrl}
             alt={performance.title}
-            className="w-full h-full object-cover"
+            fill
+            sizes="80px"
+            className="object-cover"
+            unoptimized={!isOptimizableHost(performance.posterUrl)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-text-muted text-[10px]">

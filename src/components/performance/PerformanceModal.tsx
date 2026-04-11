@@ -1,10 +1,12 @@
 // Design Ref: §5.4 — 공연 상세 모달 (모바일 bottom sheet, 데스크톱 센터 모달)
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Performance } from "@/types/performance";
 import { formatDateRange, formatPriceRange, genreLabel } from "@/lib/utils";
+import { isOptimizableHost } from "@/lib/image-host";
 import TicketLinkList from "./TicketLinkList";
 import FavoriteButton from "./FavoriteButton";
 import MyPerfButton from "./MyPerfButton";
@@ -81,10 +83,13 @@ export default function PerformanceModal({ performance }: Props) {
           {performance.posterUrl && (
             <div className="w-full bg-gradient-to-b from-bg-secondary to-white overflow-hidden">
               <div className="relative aspect-[16/9] sm:aspect-[3/2]">
-                <img
+                <Image
                   src={performance.posterUrl}
                   alt={performance.title}
-                  className="w-full h-full object-contain"
+                  fill
+                  sizes="(max-width: 640px) 100vw, 640px"
+                  className="object-contain"
+                  unoptimized={!isOptimizableHost(performance.posterUrl)}
                 />
               </div>
             </div>

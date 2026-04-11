@@ -119,6 +119,90 @@ export async function getPerformanceById(id: string) {
   return serializePerformance(performance);
 }
 
+// ─────────────────────────────────────────────────────────
+// seo-boost Phase D — 롱테일 랜딩 페이지 지원 (Plan SC: FR-09, FR-10, FR-12)
+// ─────────────────────────────────────────────────────────
+
+/**
+ * Plan SC: FR-09 — 장르 랜딩 페이지 데이터
+ * 활성 공연(공연종료 제외)만 반환. 기본 50건, 시작일 최신순.
+ */
+export async function getPerformancesByGenre(
+  genre: string,
+  opts: { limit?: number } = {},
+) {
+  const limit = opts.limit ?? 50;
+  const items = await prisma.performance.findMany({
+    where: {
+      genre,
+      status: { in: ["ongoing", "upcoming"] },
+    },
+    orderBy: [{ startDate: "asc" }, { title: "asc" }],
+    take: limit,
+  });
+  return items.map(serializePerformance);
+}
+
+/**
+ * Plan SC: FR-10 — 공연장 랜딩 페이지 데이터
+ * venue는 exact match (Prisma case-insensitive 옵션 사용).
+ */
+export async function getPerformancesByVenue(
+  venue: string,
+  opts: { limit?: number } = {},
+) {
+  const limit = opts.limit ?? 50;
+  const items = await prisma.performance.findMany({
+    where: {
+      venue,
+      status: { in: ["ongoing", "upcoming"] },
+    },
+    orderBy: [{ startDate: "asc" }, { title: "asc" }],
+    take: limit,
+  });
+  return items.map(serializePerformance);
+}
+
+/**
+ * 활성 공연을 가진 공연장 이름 전체 목록.
+ * /venue/[slug] generateStaticParams 및 slug → venue 역방향 조회에 사용.
+ */
+export async function getAllActiveVenues(): Promise<string[]> {
+  const rows = await prisma.performance.findMany({
+    where: { status: { in: ["ongoing", "upcoming"] } },
+    select: { venue: true },
+    distinct: ["venue"],
+    orderBy: { venue: "asc" },
+  });
+  return rows.map((r) => r.venue).filter(Boolean);
+}
+
+/**
+ * Plan SC: FR-12 — sitemap 분할용 cursor 기반 페이지네이션.
+ * OFFSET 대신 WHERE id > cursor 방식으로 대량 데이터에서도 효율적.
+ */
+export async function getPerformanceIdsForSitemap(opts: {
+  cursor?: string;
+  limit: number;
+}): Promise<Array<{ id: string; updatedAt: Date }>> {
+  const rows = await prisma.performance.findMany({
+    select: { id: true, updatedAt: true },
+    orderBy: { id: "asc" },
+    take: opts.limit,
+    ...(opts.cursor
+      ? { cursor: { id: opts.cursor }, skip: 1 }
+      : {}),
+  });
+  return rows;
+}
+
+/**
+ * sitemap 분할 개수 계산용 — 총 공연 개수.
+ */
+export async function countAllPerformances(): Promise<number> {
+  return prisma.performance.count();
+}
+
 function serializePerformance(p: {
   id: string;
   kopisId: string;

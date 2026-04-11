@@ -1,30 +1,52 @@
-// Design Ref: §10 + FR-18 — 쿠키 동의 배너 (AdSense 쿠키 고지)
+// Design Ref: §10 + FR-18 — 쿠키 동의 배너 (AdSense + GA4 쿠키 고지)
+// Plan SC (seo-boost): FR-16 — consent 상태 변경 시 ConsentGatedAnalytics 알림
 "use client";
 
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 
 const COOKIE_CONSENT_KEY = "pickshow-cookie-consent";
+const CONSENT_EVENT = "pickshow-consent-changed";
+
+function subscribe(listener: () => void) {
+  window.addEventListener(CONSENT_EVENT, listener);
+  window.addEventListener("storage", listener);
+  return () => {
+    window.removeEventListener(CONSENT_EVENT, listener);
+    window.removeEventListener("storage", listener);
+  };
+}
+
+function getSnapshot(): string | null {
+  return localStorage.getItem(COOKIE_CONSENT_KEY);
+}
+
+function getServerSnapshot(): string | null {
+  // SSR 중에는 localStorage 없음 → 배너 숨김 (hydration 후 클라이언트에서 재평가)
+  return "pending";
+}
+
+function notifyConsentChange() {
+  // ConsentGatedAnalytics 등 consent 의존 컴포넌트가 즉시 반영하도록 알림
+  window.dispatchEvent(new Event(CONSENT_EVENT));
+}
 
 export default function CookieConsent() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
-    if (!consent) setVisible(true);
-  }, []);
+  const consent = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const handleAccept = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, "accepted");
-    setVisible(false);
+    notifyConsentChange();
   };
 
   const handleDecline = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, "declined");
-    setVisible(false);
+    notifyConsentChange();
   };
 
-  if (!visible) return null;
+  // consent === null: 결정 안 됨 → 배너 표시
+  // consent === "accepted" | "declined" | "pending": 배너 숨김
+  if (consent !== null) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-lg">

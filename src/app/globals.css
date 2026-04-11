@@ -38,8 +38,9 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Pretendard Variable", Pretendard, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Plan SC: FR-03 — next/font/local (--font-pretendard)로 self-host, CDN fallback 제거 */
+  font-family: var(--font-pretendard), -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 /* 스크롤바 스타일 */
