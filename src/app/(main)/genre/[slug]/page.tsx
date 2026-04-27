@@ -1,28 +1,32 @@
-// Design Ref: §5.1 + §5.4 — 장르 랜딩 페이지 (RSC + ISR + ItemList/Breadcrumb JSON-LD)
-// Plan SC: FR-09 (/genre/[slug]), FR-04 (canonical), FR-11 (ISR)
+// Design Ref: §4 — 장르 랜딩 페이지 (RSC shell + SearchClient, genre 프리셋)
+// Plan SC: FR-01 (SearchClient 통합), FR-02 (SEO sr-only), FR-04 (SSR prefetch)
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getPerformancesByGenre } from "@/features/search/service";
+import {
+  HydrationBoundary,
+  dehydrate,
+  QueryClient,
+} from "@tanstack/react-query";
+import { searchPerformances } from "@/features/search/service";
+import SearchClient from "@/components/performance/SearchClient";
 import {
   generateGenreMetadata,
   generateBreadcrumbJsonLd,
   generateItemListJsonLd,
   serializeJsonLd,
 } from "@/lib/seo";
-import {
-  GENRE_SLUGS,
-  getGenreMeta,
-  isGenreSlug,
-} from "@/lib/seo/slug";
-import PerformanceCard from "@/components/performance/PerformanceCard";
+import { GENRE_SLUGS, getGenreMeta, isGenreSlug } from "@/lib/seo/slug";
+import type { SearchFilters } from "@/types/performance";
+import type { SortOption } from "@/types/common";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://pickshow.kr";
+const INITIAL_PAGE_SIZE = 20;
 
-// Plan SC: FR-11 — ISR (1시간 TTL + stale-while-revalidate)
+// Plan SC: FR-11 — ISR (1시간 TTL)
 export const revalidate = 3600;
 
-// Plan SC: FR-09 — 활성 장르 전부 정적 사전 생성
+// 활성 장르 전부 정적 사전 생성
 export function generateStaticParams() {
   return GENRE_SLUGS.map((slug) => ({ slug }));
 }
@@ -51,15 +55,49 @@ export default async function GenreLandingPage({
   const meta = getGenreMeta(slug);
   if (!meta) notFound();
 
-  const performances = await getPerformancesByGenre(slug, { limit: 50 });
+  // Plan SC: FR-01 — genre 프리셋 필터
+  const initialFilters: SearchFilters = {
+    genre: [slug],
+    status: ["ongoing"],
+  };
+  const initialSort: SortOption = "title";
 
-  // Plan SC: FR-08 — BreadcrumbList JSON-LD
+  // Plan SC: FR-04 — React Query prefetch (메인과 동일 패턴)
+  const queryClient = new QueryClient();
+
+  try {
+    await queryClient.prefetchInfiniteQuery({
+      queryKey: ["performances", initialFilters, initialSort],
+      queryFn: async () =>
+        searchPerformances({
+          genre: slug,
+          status: "ongoing",
+          sort: initialSort,
+          limit: INITIAL_PAGE_SIZE,
+          cursor: undefined,
+        }),
+      initialPageParam: undefined as string | undefined,
+      pages: 1,
+      getNextPageParam: (lastPage) =>
+        lastPage.pagination.hasNext
+          ? lastPage.pagination.cursor ?? undefined
+          : undefined,
+    });
+  } catch {
+    // prefetch 실패 시 Client가 빈 상태로 fallback
+  }
+
+  // JSON-LD: prefetch 캐시에서 공연 데이터 추출
+  const cachedData = queryClient.getQueryData<{
+    pages: Array<{ data: Array<{ id: string; title: string; posterUrl: string | null }> }>;
+  }>(["performances", initialFilters, initialSort]);
+  const performances = cachedData?.pages[0]?.data ?? [];
+
   const breadcrumbJsonLd = generateBreadcrumbJsonLd([
     { name: "홈", url: SITE_URL },
     { name: meta.label, url: `${SITE_URL}/genre/${meta.slug}` },
   ]);
 
-  // ItemList JSON-LD (공연 컬렉션)
   const itemListJsonLd =
     performances.length > 0
       ? generateItemListJsonLd({
@@ -74,13 +112,11 @@ export default async function GenreLandingPage({
         })
       : null;
 
-  // 관련 공연장 상위 8개 추출 (중복 제거)
-  const relatedVenues = Array.from(
-    new Set(performances.map((p) => p.venue).filter(Boolean)),
-  ).slice(0, 8);
+  const dehydratedState = dehydrate(queryClient);
 
   return (
     <>
+      {/* JSON-LD */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
@@ -93,94 +129,29 @@ export default async function GenreLandingPage({
       )}
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Breadcrumb (가시) */}
+        {/* Plan SC: FR-02 — SEO sr-only (크롤러/스크린리더만 읽음) */}
+        <h1 className="sr-only">{meta.label} 예매처 통합 검색</h1>
+        <p className="sr-only">{meta.longDescription}</p>
+
+        {/* Breadcrumb (시각적) */}
         <nav
           aria-label="Breadcrumb"
           className="flex items-center gap-2 text-xs text-text-muted mb-4"
         >
-          <Link href="/" className="hover:text-mint-dark">
+          <Link href="/" className="hover:text-mint-dark transition-colors">
             홈
           </Link>
           <span>›</span>
           <span className="text-text-secondary">{meta.label}</span>
         </nav>
 
-        {/* SEO 헤더 */}
-        <header className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-3">
-            {meta.label} 예매처 통합 검색
-          </h1>
-          <p className="text-sm text-text-muted leading-relaxed max-w-3xl">
-            {meta.longDescription}
-          </p>
-        </header>
-
-        {/* 공연 목록 */}
-        <section className="mb-10">
-          <h2 className="text-lg font-semibold mb-4">
-            현재 공연 중·예정 {meta.label}{" "}
-            <span className="text-text-muted text-sm font-normal">
-              ({performances.length}건)
-            </span>
-          </h2>
-
-          {performances.length === 0 ? (
-            <div className="text-center py-16 text-text-muted">
-              <p className="text-base mb-1">
-                현재 공연 중인 {meta.label} 공연이 없습니다.
-              </p>
-              <p className="text-sm">
-                <Link href="/" className="text-mint-dark hover:underline">
-                  전체 공연 보기 →
-                </Link>
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {performances.map((p) => (
-                <PerformanceCard key={p.id} performance={p} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* 관련 공연장 */}
-        {relatedVenues.length > 0 && (
-          <section className="mb-10">
-            <h2 className="text-lg font-semibold mb-4">주요 공연장</h2>
-            <div className="flex flex-wrap gap-2">
-              {relatedVenues.map((venue) => (
-                <Link
-                  key={venue}
-                  href={`/?venue=${encodeURIComponent(venue)}&genre=${slug}`}
-                  className="inline-flex items-center px-3 py-1.5 rounded-full border border-border text-xs text-text-secondary bg-white hover:bg-bg-secondary hover:border-mint-dark transition-colors"
-                >
-                  {venue}
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* 다른 장르 둘러보기 */}
-        <section>
-          <h2 className="text-lg font-semibold mb-4">다른 장르 보기</h2>
-          <div className="flex flex-wrap gap-2">
-            {GENRE_SLUGS.filter((s) => s !== slug).map((s) => {
-              const m = getGenreMeta(s);
-              if (!m) return null;
-              return (
-                <Link
-                  key={s}
-                  href={`/genre/${s}`}
-                  className="inline-flex items-center px-3 py-1.5 rounded-full border border-border text-xs text-text-secondary bg-white hover:bg-bg-secondary hover:border-mint-dark transition-colors"
-                >
-                  {m.label}
-                </Link>
-              );
-            })}
-          </div>
-        </section>
+        {/* SearchClient with genre preset */}
+        <HydrationBoundary state={dehydratedState}>
+          <SearchClient
+            initialFilters={initialFilters}
+            initialSort={initialSort}
+          />
+        </HydrationBoundary>
       </div>
     </>
   );

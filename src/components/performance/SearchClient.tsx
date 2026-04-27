@@ -245,11 +245,12 @@ export default function SearchClient({ initialFilters, initialSort }: Props) {
           </div>
         )}
 
-        {/* 무한스크롤 */}
+        {/* 무한스크롤 — FR-04: 5페이지 이후 자동 로딩 중단, "더보기" 버튼 */}
         <InfiniteScroll
           hasNext={hasNextPage ?? false}
           isFetching={isFetchingNextPage}
           onLoadMore={handleLoadMore}
+          loadedPages={data?.pages.length ?? 1}
         />
       </div>
     </div>

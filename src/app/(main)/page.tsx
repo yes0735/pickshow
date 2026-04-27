@@ -8,7 +8,6 @@
 // - <h1>, <p> 설명 텍스트는 서버 렌더 (크롤러가 즉시 읽음)
 // - 인터랙션 로직은 <SearchClient> Client island로 분리
 import type { Metadata } from "next";
-import Link from "next/link";
 import {
   HydrationBoundary,
   dehydrate,
@@ -16,7 +15,6 @@ import {
 } from "@tanstack/react-query";
 import { searchPerformances } from "@/features/search/service";
 import SearchClient from "@/components/performance/SearchClient";
-import { GENRE_SLUGS, getGenreMeta } from "@/lib/seo/slug";
 import type { SearchFilters } from "@/types/performance";
 import type { SortOption } from "@/types/common";
 
@@ -131,40 +129,8 @@ export default async function SearchPage({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* Plan SC: FR-01, Gap I2 — 크롤러가 읽을 SEO 헤더 (h1 + 250자+ description) */}
-      <header className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-3">
-          공연 예매처 통합 검색
-        </h1>
-        <p className="text-sm text-text-muted leading-relaxed max-w-3xl">
-          PickShow는 뮤지컬·연극·콘서트·클래식·무용·국악·아동 가족 공연 등 국내에서 열리는
-          주요 공연 정보를 한 곳에서 검색하고, 인터파크·예스24·티켓링크·멜론티켓·놀유니버스·
-          NHN티켓링크 등 주요 예매처로 바로 이동할 수 있는 공연 예매처 통합 검색 서비스입니다.
-          관심있는 공연을 장르·공연장·공연 기간·가격·관람연령·예매처별로 자유롭게 필터링하고,
-          대학로 소극장부터 예술의전당·세종문화회관 대극장까지 모든 공연의 출연진, 러닝타임,
-          가격 정보를 한눈에 비교한 후 원하는 예매 사이트에서 즉시 예매하세요.
-        </p>
-
-        {/* Gap C2 — 롱테일 랜딩 페이지 internal link (link juice 전달 + SEO 본문) */}
-        <nav aria-label="장르별 바로가기" className="mt-4">
-          <p className="text-xs text-text-muted mb-2">장르별 공연 예매처</p>
-          <div className="flex flex-wrap gap-2">
-            {GENRE_SLUGS.map((slug) => {
-              const meta = getGenreMeta(slug);
-              if (!meta) return null;
-              return (
-                <Link
-                  key={slug}
-                  href={`/genre/${slug}`}
-                  className="inline-flex items-center px-3 py-1.5 rounded-full border border-border text-xs text-text-secondary bg-white hover:bg-bg-secondary hover:border-mint-dark transition-colors"
-                >
-                  {meta.label} 예매
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-      </header>
+      {/* Plan SC: FR-01, SC-02 — h1 visually-hidden (크롤러/스크린리더만 읽음) */}
+      <h1 className="sr-only">공연 예매처 통합 검색</h1>
 
       <HydrationBoundary state={dehydratedState}>
         <SearchClient initialFilters={initialFilters} initialSort={initialSort} />

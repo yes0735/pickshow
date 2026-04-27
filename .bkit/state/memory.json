@@ -1,6 +1,6 @@
 {
-  "currentFeature": "seo-boost",
-  "phase": "archived",
+  "currentFeature": "genre-page-filter",
+  "phase": "plan",
   "level": "dynamic",
   "lastUpdated": "2026-04-12T03:30:00+09:00",
   "features": {
@@ -10,7 +10,27 @@
       "iterationCount": 1,
       "startedAt": "2026-04-04T17:10:00+09:00",
       "completedAt": "2026-04-04T23:45:00+09:00",
-      "completedModules": ["module-1", "module-2", "module-3", "module-4", "module-5"]
+      "completedModules": [
+        "module-1",
+        "module-2",
+        "module-3",
+        "module-4",
+        "module-5"
+      ]
+    },
+    "genre-page-filter": {
+      "phase": "completed",
+      "matchRate": 100,
+      "iterationCount": 0,
+      "completedAt": "2026-04-27T00:00:00+09:00",
+      "startedAt": "2026-04-27T00:00:00+09:00"
+    },
+    "main-redesign": {
+      "phase": "completed",
+      "matchRate": 100,
+      "iterationCount": 0,
+      "completedAt": "2026-04-27T00:00:00+09:00",
+      "startedAt": "2026-04-27T00:00:00+09:00"
     },
     "seo-boost": {
       "phase": "archived",
@@ -20,9 +40,26 @@
       "completedAt": "2026-04-12T03:20:00+09:00",
       "archivedAt": "2026-04-12T03:30:00+09:00",
       "archivedTo": "docs/archive/2026-04/seo-boost/",
-      "completedPhases": ["plan", "design", "do-a", "do-b", "do-c", "do-d", "do-e", "check", "act-1", "report"],
+      "completedPhases": [
+        "plan",
+        "design",
+        "do-a",
+        "do-b",
+        "do-c",
+        "do-d",
+        "do-e",
+        "check",
+        "act-1",
+        "report"
+      ],
       "deploymentStatus": "production-verified",
       "deploymentUrl": "https://pickshow.vercel.app"
     }
+  },
+  "sessionCount": 2,
+  "lastSession": {
+    "startedAt": "2026-04-27T12:58:29.207Z",
+    "platform": "claude",
+    "level": "Dynamic"
   }
 }
