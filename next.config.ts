@@ -4,6 +4,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    unoptimized: true,
     // KOPIS(문화예술공연정보) 및 주요 한국 공연 포스터 CDN 허용
     remotePatterns: [
       { protocol: "http", hostname: "www.kopis.or.kr" },
