@@ -1,7 +1,12 @@
 // Design Ref: §4.1 — 커뮤니티 게시판/댓글 비즈니스 로직
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import type { CreatePostInput, UpdatePostInput, CreateCommentInput } from "./schema";
+import type {
+  CreatePostInput,
+  UpdatePostInput,
+  CreateCommentInput,
+  UpdateCommentInput,
+} from "./schema";
 
 // 게시글 목록 (전통 페이지네이션)
 export async function getPosts(params: {
@@ -199,6 +204,36 @@ export async function createComment(
   return { id: comment.id };
 }
 
+// 댓글 수정
+export async function updateComment(
+  id: string,
+  input: UpdateCommentInput,
+  userId?: string,
+) {
+  const comment = await prisma.boardComment.findUnique({ where: { id } });
+  if (!comment) throw new Error("NOT_FOUND");
+
+  // 권한 확인
+  if (comment.authorId) {
+    // 회원 댓글: 본인만
+    if (!userId || comment.authorId !== userId) throw new Error("FORBIDDEN");
+  } else {
+    // 익명 댓글: 비밀번호 검증
+    if (!comment.anonymousPassword) throw new Error("FORBIDDEN");
+    if (!input.anonymousPassword) throw new Error("FORBIDDEN");
+    const valid = await bcrypt.compare(
+      input.anonymousPassword,
+      comment.anonymousPassword,
+    );
+    if (!valid) throw new Error("FORBIDDEN");
+  }
+
+  await prisma.boardComment.update({
+    where: { id },
+    data: { content: input.content },
+  });
+}
+
 // 댓글 삭제
 export async function deleteComment(id: string, userId?: string, anonymousPassword?: string) {
   const comment = await prisma.boardComment.findUnique({ where: { id } });
@@ -220,4 +255,19 @@ export async function deleteComment(id: string, userId?: string, anonymousPasswo
       data: { commentCount: { decrement: 1 } },
     }),
   ]);
+}
+
+// 게시글 비밀번호 검증 (수정 페이지 진입 게이트)
+export async function verifyPostPassword(
+  id: string,
+  password: string,
+): Promise<boolean> {
+  const post = await prisma.boardPost.findUnique({
+    where: { id },
+    select: { boardType: true, anonymousPassword: true },
+  });
+  if (!post) throw new Error("NOT_FOUND");
+  if (post.boardType !== "anonymous") throw new Error("FORBIDDEN");
+  if (!post.anonymousPassword) return false;
+  return bcrypt.compare(password, post.anonymousPassword);
 }

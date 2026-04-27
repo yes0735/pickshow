@@ -32,7 +32,6 @@ export default function WritePostPage() {
     category: "",
     title: "",
     content: "",
-    authorNickname: "",
     anonymousPassword: "",
   });
   const [error, setError] = useState("");
@@ -65,7 +64,8 @@ export default function WritePostPage() {
     };
 
     if (boardType === "anonymous") {
-      body.authorNickname = form.authorNickname || "익명";
+      // 익명 게시판: 작성자는 항상 "익명"으로 고정
+      body.authorNickname = "익명";
       if (form.anonymousPassword) body.anonymousPassword = form.anonymousPassword;
     }
 
@@ -122,29 +122,24 @@ export default function WritePostPage() {
           </select>
         </div>
 
-        {/* 익명 게시판: 닉네임/비밀번호 */}
+        {/* 익명 게시판: 비밀번호 (수정/삭제용) — 닉네임은 "익명"으로 고정 */}
         {boardType === "anonymous" && (
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="block text-xs text-text-secondary mb-1">닉네임</label>
-              <input
-                type="text"
-                value={form.authorNickname}
-                onChange={(e) => setForm((f) => ({ ...f, authorNickname: e.target.value }))}
-                placeholder="익명"
-                className="w-full h-10 px-3 rounded-lg border border-border text-sm focus:outline-none focus:border-mint"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-xs text-text-secondary mb-1">비밀번호 (수정/삭제용)</label>
-              <input
-                type="password"
-                value={form.anonymousPassword}
-                onChange={(e) => setForm((f) => ({ ...f, anonymousPassword: e.target.value }))}
-                placeholder="4자 이상"
-                className="w-full h-10 px-3 rounded-lg border border-border text-sm focus:outline-none focus:border-mint"
-              />
-            </div>
+          <div>
+            <label className="block text-xs text-text-secondary mb-1">
+              비밀번호 <span className="text-text-muted">(수정/삭제용, 선택)</span>
+            </label>
+            <input
+              type="password"
+              value={form.anonymousPassword}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, anonymousPassword: e.target.value }))
+              }
+              placeholder="4자 이상 (나중에 삭제하려면 입력)"
+              className="w-full h-10 px-3 rounded-lg border border-border text-sm focus:outline-none focus:border-mint"
+            />
+            <p className="mt-1 text-[11px] text-text-muted">
+              작성자는 자동으로 <b>익명</b>으로 등록됩니다.
+            </p>
           </div>
         )}
 
