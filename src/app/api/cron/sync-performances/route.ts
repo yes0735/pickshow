@@ -3,8 +3,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { syncPerformancesFromKopis } from "@/features/batch/service";
 
-export async function POST(request: NextRequest) {
-  // CRON_SECRET 검증
+export async function GET(request: NextRequest) {
+  // CRON_SECRET 검증 (Vercel Cron은 GET + Authorization 헤더로 호출)
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json(
