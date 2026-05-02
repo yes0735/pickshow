@@ -61,15 +61,12 @@ export default function RootLayout({
           </QueryProvider>
         </SessionProvider>
 
-        {/* Google AdSense — afterInteractive for performance
-            NOTE: 변수명이 GA_ID지만 실제로는 AdSense client ID다 (레거시 네이밍) */}
-        {process.env.NEXT_PUBLIC_GA_ID && (
-          <Script
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_GA_ID}`}
-            strategy="afterInteractive"
-            crossOrigin="anonymous"
-          />
-        )}
+        {/* Google AdSense */}
+        <Script
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4177908352995656"
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
+        />
 
         {/* Plan SC: FR-16 — Google Analytics 4 (consent gated)
             CookieConsent 수락 후에만 로드됨 (개인정보법 준수) */}
