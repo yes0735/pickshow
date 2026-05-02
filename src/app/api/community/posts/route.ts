@@ -41,10 +41,14 @@ export async function POST(request: Request) {
   }
 
   try {
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      ?? request.headers.get("x-real-ip")
+      ?? undefined;
     const data = await createPost(
       parsed.data,
       session?.user?.id ?? undefined,
-      session?.user?.name ?? undefined
+      session?.user?.name ?? undefined,
+      ip
     );
     return NextResponse.json({ data }, { status: 201 });
   } catch (e) {

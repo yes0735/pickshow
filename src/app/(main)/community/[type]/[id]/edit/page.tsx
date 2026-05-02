@@ -85,7 +85,7 @@ export default function EditPostPage() {
   // 권한 검증 (회원 게시판만 즉시 확인 가능, 익명은 비번으로 서버 검증)
   if (loadError) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
         <p className="text-text-muted mb-4">{loadError}</p>
         <Link
           href={`/community/${boardType}`}
@@ -99,7 +99,7 @@ export default function EditPostPage() {
 
   if (!post) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-20">
+      <div className="max-w-3xl mx-auto px-4 py-20">
         <div className="h-8 w-2/3 bg-bg-secondary animate-pulse rounded mb-4" />
         <div className="h-40 bg-bg-secondary animate-pulse rounded" />
       </div>
@@ -112,7 +112,7 @@ export default function EditPostPage() {
     (!session?.user?.id || post.authorId !== session.user.id)
   ) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
         <p className="text-text-muted mb-4">수정 권한이 없습니다</p>
         <Link
           href={`/community/${boardType}/${postId}`}
@@ -165,7 +165,7 @@ export default function EditPostPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="max-w-3xl mx-auto px-4 py-8">
       <Link
         href={`/community/${boardType}/${postId}`}
         className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-mint-dark mb-6"

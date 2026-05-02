@@ -62,6 +62,7 @@ export interface EventJsonLdInput {
   status: string; // "ongoing" | "upcoming" | "completed"
   ticketUrls: { name: string; url: string }[];
   performanceId: string;
+  genre: string;
 }
 
 /**
@@ -146,7 +147,7 @@ export function generateEventJsonLd(input: EventJsonLdInput) {
         : [
             {
               "@type": "Offer",
-              url: `${SITE_URL}/performance/${input.performanceId}`,
+              url: `${SITE_URL}/genre/${input.genre}/${input.performanceId}`,
               name: "PickShow 예매처 확인",
               price: minPrice,
               priceCurrency: "KRW",
@@ -195,6 +196,7 @@ export interface ItemListJsonLdInput {
     id: string;
     title: string;
     posterUrl: string | null;
+    genre: string;
   }>;
 }
 
@@ -211,9 +213,9 @@ export function generateItemListJsonLd(input: ItemListJsonLdInput) {
       position: index + 1,
       item: {
         "@type": "Event",
-        "@id": `${SITE_URL}/performance/${p.id}`,
+        "@id": `${SITE_URL}/genre/${p.genre}/${p.id}`,
         name: p.title,
-        url: `${SITE_URL}/performance/${p.id}`,
+        url: `${SITE_URL}/genre/${p.genre}/${p.id}`,
         ...(p.posterUrl ? { image: p.posterUrl } : {}),
       },
     })),

@@ -89,7 +89,7 @@ export default async function GenreLandingPage({
 
   // JSON-LD: prefetch 캐시에서 공연 데이터 추출
   const cachedData = queryClient.getQueryData<{
-    pages: Array<{ data: Array<{ id: string; title: string; posterUrl: string | null }> }>;
+    pages: Array<{ data: Array<{ id: string; title: string; posterUrl: string | null; genre: string }> }>;
   }>(["performances", initialFilters, initialSort]);
   const performances = cachedData?.pages[0]?.data ?? [];
 
@@ -108,6 +108,7 @@ export default async function GenreLandingPage({
             id: p.id,
             title: p.title,
             posterUrl: p.posterUrl,
+            genre: p.genre,
           })),
         })
       : null;

@@ -69,12 +69,21 @@ export async function getPostDetail(id: string) {
   };
 }
 
-// 댓글 페이징 조회
-export async function getCommentsByPostId(postId: string, params?: { page?: number; limit?: number }) {
+// 댓글 페이징 조회 — IP 기반 익명 번호 + 글쓴이 판별
+export async function getCommentsByPostId(postId: string, params?: { page?: number; limit?: number; viewerIp?: string; viewerId?: string }) {
   const page = params?.page ?? 1;
   const limit = params?.limit ?? 10;
+  const viewerIp = params?.viewerIp;
+  const viewerId = params?.viewerId;
 
-  const [items, total] = await Promise.all([
+  // 전체 댓글의 IP/authorId를 등장 순서대로 가져와 익명 번호 매핑 생성
+  const [post, allComments, items, total] = await Promise.all([
+    prisma.boardPost.findUnique({ where: { id: postId }, select: { ipAddress: true, authorId: true } }),
+    prisma.boardComment.findMany({
+      where: { postId },
+      orderBy: { createdAt: "asc" },
+      select: { ipAddress: true, authorId: true },
+    }),
     prisma.boardComment.findMany({
       where: { postId },
       orderBy: { createdAt: "asc" },
@@ -84,6 +93,7 @@ export async function getCommentsByPostId(postId: string, params?: { page?: numb
         id: true,
         authorNickname: true,
         authorId: true,
+        ipAddress: true,
         content: true,
         createdAt: true,
       },
@@ -91,20 +101,62 @@ export async function getCommentsByPostId(postId: string, params?: { page?: numb
     prisma.boardComment.count({ where: { postId } }),
   ]);
 
+  // IP/authorId → 익명 번호 매핑 (등장 순서, 글쓴이 제외)
+  // IP/authorId → 익명 번호 매핑 (등장 순서, 글쓴이 제외)
+  const anonMap = new Map<string, number>();
+  let anonCounter = 0;
+  for (const c of allComments) {
+    const key = c.authorId ?? c.ipAddress ?? "";
+    if (!key) continue;
+    const isWriter = c.authorId && post?.authorId
+      ? c.authorId === post.authorId
+      : !!(c.ipAddress && post?.ipAddress && c.ipAddress === post.ipAddress);
+    if (isWriter) continue;
+    if (!anonMap.has(key)) {
+      anonCounter++;
+      anonMap.set(key, anonCounter);
+    }
+  }
+
   return {
-    data: items.map((c) => ({ ...c, createdAt: c.createdAt.toISOString() })),
+    data: items.map((c) => {
+      const isWriter = c.authorId && post?.authorId
+        ? c.authorId === post.authorId
+        : !!(c.ipAddress && post?.ipAddress && c.ipAddress === post.ipAddress);
+      const key = c.authorId ?? c.ipAddress ?? "";
+      const anonNumber = anonMap.get(key);
+      const displayName = isWriter
+        ? "글쓴이"
+        : anonNumber
+          ? `익명_${anonNumber}`
+          : c.authorNickname;
+      // 댓글 수정/삭제 가능 여부: 회원이면 authorId, 익명이면 IP 비교
+      const canManage = viewerId
+        ? c.authorId === viewerId
+        : !!(viewerIp && c.ipAddress && viewerIp === c.ipAddress);
+      return {
+        id: c.id,
+        authorNickname: displayName,
+        authorId: c.authorId,
+        content: c.content,
+        createdAt: c.createdAt.toISOString(),
+        isWriter,
+        canManage,
+      };
+    }),
     pagination: { page, totalPages: Math.ceil(total / limit), total },
   };
 }
 
 // 게시글 작성
-export async function createPost(input: CreatePostInput, userId?: string, userNickname?: string) {
+export async function createPost(input: CreatePostInput, userId?: string, userNickname?: string, ipAddress?: string) {
   const data: Parameters<typeof prisma.boardPost.create>[0]["data"] = {
     boardType: input.boardType,
     category: input.category,
     title: input.title,
     content: input.content,
     authorNickname: "",
+    ipAddress: ipAddress ?? null,
   };
 
   if (input.boardType === "anonymous") {
@@ -172,7 +224,8 @@ export async function createComment(
   postId: string,
   input: CreateCommentInput,
   userId?: string,
-  userNickname?: string
+  userNickname?: string,
+  ipAddress?: string
 ) {
   const post = await prisma.boardPost.findUnique({ where: { id: postId } });
   if (!post) throw new Error("NOT_FOUND");
@@ -181,6 +234,7 @@ export async function createComment(
     postId,
     content: input.content,
     authorNickname: "",
+    ipAddress: ipAddress ?? null,
   };
 
   if (userId) {

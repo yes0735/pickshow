@@ -1,6 +1,6 @@
 // Design Ref: §11.1 — Root layout (Pretendard next/font, WebSite JSON-LD, AdSense, CookieConsent, GA4)
 // Plan SC: FR-03 (next/font), FR-05 (metadataBase+twitter), FR-07 (WebSite JSON-LD), FR-16 (GA4)
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
 import "./globals.css";
@@ -27,6 +27,10 @@ const pretendard = localFont({
 });
 
 export const metadata: Metadata = getBaseMetadata();
+
+export const viewport: Viewport = {
+  themeColor: "#1B7A4A",
+};
 
 export default function RootLayout({
   children,
@@ -74,6 +78,11 @@ export default function RootLayout({
             gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
           />
         )}
+
+        {/* PWA Service Worker 등록 */}
+        <Script id="sw-register" strategy="afterInteractive">
+          {`if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`}
+        </Script>
       </body>
     </html>
   );

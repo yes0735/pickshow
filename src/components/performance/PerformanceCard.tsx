@@ -18,8 +18,7 @@ interface Props {
 export default function PerformanceCard({ performance }: Props) {
   return (
     <Link
-      href={`/performance/${performance.id}`}
-      scroll={false}
+      href={`/genre/${performance.genre}/${performance.id}`}
       className="group block rounded-xl border border-border bg-white overflow-hidden hover:shadow-md transition-shadow"
     >
       <div className="aspect-[3/4] bg-bg-secondary relative overflow-hidden">
@@ -47,7 +46,7 @@ export default function PerformanceCard({ performance }: Props) {
       </div>
 
       <div className="p-3">
-        <h3 className="font-semibold text-sm leading-tight line-clamp-2 mb-1 group-hover:text-mint-dark transition-colors">
+        <h3 className="font-semibold text-sm leading-tight line-clamp-2 min-h-[2.5rem] mb-1 group-hover:text-mint-dark transition-colors">
           {performance.title}
         </h3>
         <p className="text-xs text-text-muted mb-0.5">{performance.venue}</p>

@@ -1,134 +1,145 @@
-# Plan: main-redesign (메인화면 디자인 변경)
+# Plan: main-redesign (메인화면 디자인 리뉴얼)
 
 - Feature: main-redesign
 - Created: 2026-04-27
+- Updated: 2026-05-02 (디자인 핸드오프 반영)
 - Phase: Plan
 - Level: Dynamic
+- Source: PickShow Design System Handoff (zip)
 
 ## Executive Summary
 
 | 관점 | 내용 |
 |------|------|
-| Problem | 메인화면에 장르 카테고리가 2곳(장르별 바로가기 링크 + GenreFilter 칩)에 중복 표시되고, SEO용 서비스 설명이 상단을 크게 차지하여 사용자가 실제 콘텐츠(공연 목록)에 도달하기까지 스크롤이 많이 필요함 |
-| Solution | 장르별 바로가기 링크와 SEO 설명문을 푸터로 이동하고, h1은 visually-hidden 처리. 푸터를 서비스 설명 + 장르 링크 + KOPIS 출처 + 법적 링크를 포함하는 풍성한 구조로 확장 |
-| Function UX Effect | 메인화면 진입 시 바로 검색/필터/공연 카드가 보여 탐색 효율 향상. 푸터에서 서비스 정보와 데이터 출처를 신뢰감 있게 제공 |
-| Core Value | 콘텐츠 우선 레이아웃으로 사용자 경험 개선 + SEO 크롤링 유지 + 데이터 출처 투명성 확보 |
+| Problem | 메인화면에 히어로 섹션, 카테고리 네비게이션, 최근 검색어가 없어 첫인상이 약하고 탐색 동선이 길다. 디자인 핸드오프 대비 6개 주요 Gap 존재 |
+| Solution | HomeHero(제목+설명+통합검색바+최근검색어), Header 카테고리 탭, 모바일 드로어, BackToTop, 배경색 off-white 적용 |
+| Function UX Effect | 검색 진입점 명확화, 카테고리 원클릭 탐색, 최근검색어 재사용으로 검색 효율 대폭 향상 |
+| Core Value | 서비스 정체성 전달 + 탐색 효율 개선 = 첫 방문 이탈률 감소 |
 
 ## Context Anchor
 
 | Key | Value |
 |-----|-------|
-| WHY | 메인화면 상단의 중복 UI와 긴 설명문이 콘텐츠 접근성을 저하시킴 |
-| WHO | PickShow 방문자 (공연 검색 사용자 + SEO 크롤러) |
-| RISK | SEO 랭킹 하락 가능성 (h1/설명문 위치 변경) |
-| SUCCESS | 메인 상단 간결화 + SEO 지표 유지 + 푸터 정보 충실 |
-| SCOPE | page.tsx (메인), Footer.tsx, 관련 CSS |
+| WHY | 디자인 핸드오프와 현재 구현 간 Gap 해소 - 메인화면 첫인상 및 탐색 동선 개선 |
+| WHO | PickShow 방문자 (공연 검색 사용자, 모바일+데스크톱) |
+| RISK | 기존 검색/필터 로직(Zustand+React Query) 깨지지 않도록 주의 |
+| SUCCESS | 디자인 핸드오프 UI와 95%+ 일치 + 기존 기능 정상 동작 |
+| SCOPE | 메인 홈 화면 + Header 리뉴얼 (커뮤니티/마이페이지 제외) |
 
 ---
 
 ## 1. Background
 
-현재 메인화면 `(main)/page.tsx` 구조:
-- `<header>`: h1 "공연 예매처 통합 검색" + 250자+ 서비스 설명 `<p>` + 장르별 바로가기 `<nav>` (8개 링크)
-- `<SearchClient>`: GenreFilter 칩 (동일 장르 목록) + 필터 + 공연 카드
+디자인 핸드오프 파일(`PickShow Design System-handoff.zip`) 분석 결과, 현재 구현과 6개 주요 Gap이 발견됨:
 
-문제:
-1. 장르가 "바로가기 링크"와 "GenreFilter 칩" 2곳에 중복
-2. SEO 설명문이 화면 상단을 차지하여 모바일에서 특히 스크롤 부담
-3. 푸터가 저작권 + 법적 링크만 있어 단순함
+| 영역 | 디자인 핸드오프 | 현재 구현 | Gap |
+|------|----------------|----------|-----|
+| Hero 섹션 | 제목+설명+검색바+최근검색어 | 없음 (sr-only h1) | 신규 |
+| Header Row 2 | 카테고리 탭 nav (메인/뮤지컬/연극...) + active 밑줄 | 없음 | 신규 |
+| 검색바 위치 | Hero 내부 통합 (mint CTA 원형 버튼) | Header 하단 (별도 영역) | 위치+스타일 변경 |
+| 최근 검색어 | 칩 형태로 검색바 하단 표시 | 없음 | 신규 |
+| 모바일 카테고리 | 좌측 슬라이드 드로어 (280px) | 없음 | 신규 |
+| BackToTop | 우측 하단 플로팅 버튼 | 없음 | 신규 |
+| 배경색 | bg-secondary (#F8FAFB) | bg (#FEFEFE) | 변경 |
 
 ## 2. Requirements
 
-### FR-01: 메인 상단 간결화
-- `page.tsx`의 `<header>` 영역에서 장르별 바로가기 `<nav>` 제거
-- `page.tsx`의 `<header>` 영역에서 서비스 설명 `<p>` 제거
-- h1 "공연 예매처 통합 검색"은 visually-hidden 클래스로 시각적 숨김 처리
-  - 크롤러와 스크린리더는 읽을 수 있음
-  - CSS: `sr-only` (Tailwind 기본 제공)
+### FR-01: HomeHero 섹션 (신규)
+- h1 제목: "공연 정보를 한 곳에서, 예매처로 바로" (text-20 bold)
+- 설명 텍스트: "PickShow는 공연 정보를 한 곳에서 검색하고, 원하는 예매처로 바로 이동할 수 있는 공연 예매처 통합 검색 서비스입니다." (text-13 secondary)
+- 통합 검색바:
+  - rounded-full, h-44, shadow-sm
+  - 좌측 padding 20px, 우측 mint CTA 원형 버튼 (w-32 h-32)
+  - 검색어 삭제 x-circle 버튼
+- 최근 검색어:
+  - localStorage 저장 (키: `ps_recents`, 최대 8개)
+  - 칩 형태: rounded-full, bg-secondary, border
+  - 개별 삭제(x) + "모두 지우기" 버튼
+  - 클릭 시 해당 검색어로 검색 실행
+- 검색 실행 시 Zustand store `setFilter("q", value)` 연동
 
-### FR-02: 푸터 확장
-- 푸터를 다단 구조로 리디자인:
-  - **서비스 설명 섹션**: PickShow 로고 + 서비스 설명 텍스트 (기존 page.tsx의 설명문 이동)
-  - **장르별 바로가기 섹션**: `/genre/{slug}` 링크 목록 (기존 page.tsx에서 이동)
-  - **데이터 출처 섹션**: "공연 정보: KOPIS(공연예술통합전산망)" 텍스트 + KOPIS 사이트 링크
-  - **법적 링크 섹션**: 개인정보처리방침, 이용약관 (기존 유지)
-  - **저작권 표시**: 기존 유지
+### FR-02: Header 2단 구조 리뉴얼
+- Row 1 (h-48):
+  - 모바일: [hamburger] [PickShow 로고] ... [게시판][찜][내공연]
+  - 데스크톱: [PickShow 로고] ... [게시판][찜][내공연]
+- Row 2 (h-40, 데스크톱 md+ 전용):
+  - 카테고리 탭: 메인 / 뮤지컬 / 연극 / 콘서트 / 클래식 / 무용 / 국악 / 기타
+  - 활성 탭: text-mint-dark + font-semibold + border-bottom 2px mint-dark
+  - 가로 스크롤 (좁은 화면)
+- Header에서 검색바 제거 (Hero로 이동)
+- 카테고리 탭 클릭 -> Zustand genre 필터 적용
 
-### FR-03: SEO 유지
-- 푸터의 서비스 설명에 h1 태그 적용 (페이지당 h1 하나 유지)
-  - 단, visually-hidden으로 메인 상단에 배치하므로 푸터에는 h2 또는 일반 텍스트
-  - 크롤러는 상단의 visually-hidden h1을 읽음
-- 장르별 링크는 `<nav>` + `aria-label`로 시맨틱 유지
-- 내부 링크 구조 유지 (link juice 보존)
+### FR-03: 모바일 카테고리 드로어 (신규)
+- 햄버거 아이콘 (lg:hidden) 클릭 시 좌측 슬라이드 드로어
+- 드로어 너비 280px, slideInLeft 애니메이션 0.25s
+- 카테고리 목록: 버튼 형태 (text-14, padding 10px 12px, rounded-lg)
+- 활성 카테고리: bg-mint-light + text-mint-dark
+- 오버레이 bg-black/50 + ESC 닫기
 
-### FR-04: 무한 스크롤 자동 로딩 제한 (푸터 접근성)
-- 무한 스크롤이 N페이지(기본 5) 이후 자동 로딩을 중단
-- "더보기" 버튼을 표시하여 수동 로드로 전환
-- 자동 로딩 중단 시 푸터가 자연스럽게 노출됨 (Instagram 방식)
-- InfiniteScroll 컴포넌트에 `autoLoadPages` prop 추가
-- SearchClient에서 현재 로드된 페이지 수를 추적하여 전달
+### FR-04: BackToTop 버튼 (신규)
+- 스크롤 240px 이후 표시
+- 우측 하단 고정 (right:16, bottom:16, z-40)
+- white bg + border + shadow (0 4px 12px rgba(0,0,0,.12))
+- arrow-up 아이콘 (18px)
+- 클릭 시 smooth scroll to top
+
+### FR-05: 배경색 변경
+- body 배경: bg-secondary (#F8FAFB)로 변경
+- 카드/모달은 white 유지 -> 자연스러운 구분
+
+### FR-06: SearchClient 정리
+- GenreFilter 칩 제거 (Header 카테고리 탭으로 대체)
+- 기존 필터/정렬/무한스크롤 로직 유지
 
 ## 3. Out of Scope
 
-- Header 컴포넌트 변경 (검색바, 네비게이션 메뉴)
-- GenreFilter 칩 UI 변경
-- 다른 페이지 (장르 상세, 커뮤니티 등)
+- 커뮤니티 게시판 리디자인
+- 마이페이지 리디자인
+- 공연 상세 모달/페이지 (이미 별도 리뉴얼 완료)
+- 인증 화면 (로그인/회원가입)
 
 ## 4. Technical Approach
 
-### 변경 파일:
+### 수정/생성 파일
+
 | File | Action | Description |
 |------|--------|-------------|
-| `src/app/(main)/page.tsx` | Modify | header 영역 간결화 (설명/장르링크 제거, h1 sr-only) |
-| `src/components/layout/Footer.tsx` | Modify | 다단 구조 푸터로 확장 |
-| `src/components/ui/InfiniteScroll.tsx` | Modify | autoLoadPages prop 추가, 초과 시 "더보기" 버튼 표시 |
-| `src/components/performance/SearchClient.tsx` | Modify | 로드된 페이지 수 추적, InfiniteScroll에 전달 |
+| `src/app/globals.css` | Modify | body bg -> bg-secondary, slideInLeft/fadeIn 키프레임 추가 |
+| `src/components/home/HomeHero.tsx` | Create | Hero 섹션 (Client Component - 검색+최근검색어) |
+| `src/components/layout/Header.tsx` | Modify | 2단 구조 + 카테고리 탭 + 모바일 드로어 |
+| `src/components/ui/BackToTop.tsx` | Create | 플로팅 스크롤 버튼 |
+| `src/app/(main)/page.tsx` | Modify | HomeHero RSC 통합 |
+| `src/app/(main)/layout.tsx` | Modify | BackToTop 추가 |
+| `src/components/performance/SearchClient.tsx` | Modify | GenreFilter 제거 |
 
-### 푸터 레이아웃 (모바일 → 데스크톱):
-```
-Mobile (1열 세로 스택):
-┌─────────────────────────┐
-│ PickShow 로고 + 설명     │
-├─────────────────────────┤
-│ 장르별 공연 예매처        │
-│ 뮤지컬 | 연극 | 콘서트... │
-├─────────────────────────┤
-│ 데이터 출처: KOPIS       │
-├─────────────────────────┤
-│ 개인정보 | 이용약관       │
-│ (c) 2026 PickShow        │
-└─────────────────────────┘
-
-Desktop (그리드):
-┌──────────────┬──────────────┬──────────────┐
-│ PickShow     │ 장르별       │ 안내         │
-│ 로고 + 설명  │ 공연 예매처  │ 개인정보     │
-│              │ 뮤지컬 예매  │ 이용약관     │
-│              │ 연극 예매    │              │
-│              │ 콘서트 예매  │ 데이터 출처  │
-│              │ ...          │ KOPIS 링크   │
-├──────────────┴──────────────┴──────────────┤
-│ (c) 2026 PickShow. All rights reserved.    │
-└────────────────────────────────────────────┘
-```
+### 구현 순서
+1. `globals.css` - 배경색 + 애니메이션 추가
+2. `HomeHero.tsx` - Hero 섹션 생성
+3. `Header.tsx` - 2단 구조 + 드로어 리뉴얼
+4. `BackToTop.tsx` - 플로팅 버튼 생성
+5. `page.tsx` - Hero 통합
+6. `layout.tsx` - BackToTop 추가
+7. `SearchClient.tsx` - GenreFilter 제거
+8. 통합 테스트
 
 ## 5. Risks & Mitigations
 
 | Risk | Severity | Mitigation |
 |------|----------|------------|
-| SEO 랭킹 하락 (h1 위치 변경) | Medium | visually-hidden h1 유지 + 푸터에 시맨틱 마크업 + 내부 링크 구조 보존. 배포 후 GSC 모니터링 |
-| 크롤러가 푸터 콘텐츠 가중치를 낮게 봄 | Low | 장르 링크는 내부 링크이므로 위치보다 존재 여부가 중요. h1은 상단에 유지 |
-| 모바일 푸터가 너무 길어짐 | Low | 장르 링크를 flex-wrap으로 컴팩트하게 배치 |
+| Zustand store 연동 깨짐 | High | Hero 검색바가 동일한 setFilter("q") 사용, 기존 API 변경 없음 |
+| SSR prefetch 영향 | Medium | Hero는 Client Component지만 page.tsx의 React Query prefetch 로직 유지 |
+| SEO 영향 | Low | h1은 Hero에 서버 렌더, 검색바만 Client island |
+| 모바일 드로어 a11y | Low | aria-label + ESC + 오버레이 클릭 닫기 적용 |
 
 ## 6. Success Criteria
 
-| ID | Criteria | Measurement |
-|----|----------|-------------|
-| SC-01 | 메인 상단에서 서비스 설명/장르 바로가기가 보이지 않음 | 시각적 확인 |
-| SC-02 | h1이 DOM에 존재하고 sr-only 클래스 적용 | DOM 검사 |
-| SC-03 | 푸터에 서비스 설명, 장르 링크, KOPIS 출처, 법적 링크 모두 표시 | 시각적 확인 |
-| SC-04 | 장르 링크 클릭 시 `/genre/{slug}` 페이지로 정상 이동 | 기능 테스트 |
-| SC-05 | 모바일/데스크톱 반응형 레이아웃 정상 동작 | 반응형 확인 |
-| SC-06 | Lighthouse SEO 점수 유지 (현재 대비 하락 없음) | Lighthouse 측정 |
-| SC-07 | 5페이지 이후 자동 로딩 중단, "더보기" 버튼 표시 | 스크롤 테스트 |
-| SC-08 | "더보기" 버튼 아래에 푸터가 보임 | 시각적 확인 |
+| ID | Criteria |
+|----|----------|
+| SC-01 | HomeHero: 제목+설명+검색바+최근검색어 정상 렌더 |
+| SC-02 | Header 카테고리 탭: 클릭 시 장르 필터 적용, active 스타일 |
+| SC-03 | 모바일 드로어: 햄버거 -> 드로어 열림/닫힘, 카테고리 선택 |
+| SC-04 | BackToTop: 스크롤 후 표시, 클릭 시 상단 이동 |
+| SC-05 | 최근 검색어: localStorage 저장/표시/개별삭제/전체삭제 |
+| SC-06 | 기존 검색/필터/무한스크롤 정상 동작 |
+| SC-07 | 배경색 off-white (#F8FAFB) 적용 |
+| SC-08 | 디자인 핸드오프 UI와 95%+ 시각적 일치 |

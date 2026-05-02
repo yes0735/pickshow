@@ -105,6 +105,7 @@ model BoardPost {
   authorId          String?  @map("author_id")
   authorNickname    String   @map("author_nickname")
   anonymousPassword String?  @map("anonymous_password")
+  ipAddress         String?  @map("ip_address")
   viewCount         Int      @default(0) @map("view_count")
   commentCount      Int      @default(0) @map("comment_count")
   createdAt         DateTime @default(now()) @map("created_at")
@@ -125,6 +126,7 @@ model BoardComment {
   authorNickname    String   @map("author_nickname")
   content           String
   anonymousPassword String?  @map("anonymous_password")
+  ipAddress         String?  @map("ip_address")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 

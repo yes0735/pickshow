@@ -52,7 +52,15 @@ export default function BoardListPage() {
   const total = data?.pagination?.total ?? 0;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <>
+    <div className="max-w-7xl mx-auto px-4 pt-6">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-text-muted mb-4">
+        <Link href="/" className="hover:text-mint-dark transition-colors">홈</Link>
+        <span>›</span>
+        <span className="text-text-secondary">게시판</span>
+      </nav>
+    </div>
+    <div className="max-w-3xl mx-auto px-4 pb-6">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg font-bold">게시판</h1>
@@ -96,8 +104,11 @@ export default function BoardListPage() {
         )}
       </div>
 
-      {/* 테이블 헤더 */}
-      <div className="hidden sm:grid grid-cols-[1fr_80px_80px_60px] gap-2 px-4 py-2 bg-bg-secondary rounded-t-lg text-[11px] text-text-muted font-medium border-b border-border">
+      {/* 게시글 테이블 (흰색 카드) */}
+      <div className="bg-white rounded-2xl border border-border overflow-hidden">
+
+      {/* 테��블 헤더 */}
+      <div className="hidden sm:grid grid-cols-[1fr_80px_80px_60px] gap-2 px-4 py-2 bg-bg-secondary text-[11px] text-text-muted font-medium border-b border-border-light">
         <span>제목</span>
         <span className="text-center">작성자</span>
         <span className="text-center">날짜</span>
@@ -106,7 +117,7 @@ export default function BoardListPage() {
 
       {/* 로딩 */}
       {isLoading && (
-        <div className="divide-y divide-border border border-border sm:border-t-0 rounded-b-lg sm:rounded-t-none rounded-lg">
+        <div className="divide-y divide-border-light">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-12 bg-bg-secondary/50 animate-pulse" />
           ))}
@@ -115,14 +126,14 @@ export default function BoardListPage() {
 
       {/* 빈 상태 */}
       {!isLoading && (!data?.data || data.data.length === 0) && (
-        <div className="text-center py-20 border border-border rounded-lg sm:rounded-t-none sm:border-t-0">
+        <div className="text-center py-20">
           <p className="text-text-muted text-sm">게시글이 없습니다</p>
         </div>
       )}
 
       {/* 게시글 목록 */}
       {data?.data && data.data.length > 0 && (
-        <div className="divide-y divide-border border border-border sm:border-t-0 rounded-b-lg sm:rounded-t-none rounded-lg overflow-hidden">
+        <div className="divide-y divide-border-light">
           {data.data.map((post) => (
             <Link
               key={post.id}
@@ -168,6 +179,8 @@ export default function BoardListPage() {
           ))}
         </div>
       )}
+
+      </div>{/* 흰색 카드 닫기 */}
 
       {/* 페이지네이션 */}
       {data?.pagination && data.pagination.totalPages > 1 && (
@@ -228,6 +241,7 @@ export default function BoardListPage() {
         </div>
       )}
     </div>
+    </>
   );
 }
 

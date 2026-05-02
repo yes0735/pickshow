@@ -17,7 +17,6 @@ import ViewToggle from "@/components/performance/ViewToggle";
 import SortSelect from "@/components/performance/SortSelect";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
 import AdSlot from "@/components/ads/AdSlot";
-import GenreFilter from "@/components/performance/GenreFilter";
 import ActiveFilterTags from "@/components/performance/ActiveFilterTags";
 import type { SearchFilters } from "@/types/performance";
 import type { SortOption } from "@/types/common";
@@ -142,12 +141,7 @@ export default function SearchClient({ initialFilters, initialSort }: Props) {
 
       {/* 메인 콘텐츠 */}
       <div className="flex-1 min-w-0">
-        {/* 장르 필터 (상단 칩) */}
-        <div className="mb-4">
-          <GenreFilter />
-        </div>
-
-        {/* 적용된 필터 태그 */}
+        {/* 적용된 필터 태그 (장르는 Header 카테고리 탭으로 이동) */}
         <ActiveFilterTags />
 
         {/* 상단 바 */}

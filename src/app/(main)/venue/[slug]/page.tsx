@@ -118,6 +118,7 @@ export default async function VenueLandingPage({
             id: p.id,
             title: p.title,
             posterUrl: p.posterUrl,
+            genre: p.genre,
           })),
         })
       : null;

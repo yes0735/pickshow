@@ -42,7 +42,7 @@ export default function WritePostPage() {
   // 회원 게시판인데 로그인 안 된 경우
   if (boardType === "member" && !session?.user) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
         <p className="text-text-muted mb-4">회원 게시판은 로그인이 필요합니다</p>
         <Link href="/login" className="text-mint-dark hover:underline text-sm">
           로그인하기
@@ -88,22 +88,33 @@ export default function WritePostPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <Link
-        href={`/community/${boardType}`}
-        className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-mint-dark mb-6"
-      >
-        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path d="m15 18-6-6 6-6" />
-        </svg>
-        목록으로
-      </Link>
+    <>
+    <div className="max-w-7xl mx-auto px-4 pt-6">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-text-muted mb-4">
+        <Link href="/" className="hover:text-mint-dark transition-colors">홈</Link>
+        <span>›</span>
+        <Link href={`/community/${boardType}`} className="hover:text-mint-dark transition-colors">게시판</Link>
+        <span>›</span>
+        <span className="text-text-secondary">글쓰기</span>
+      </nav>
+    </div>
+    <div className="max-w-3xl mx-auto px-4 pb-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold">
+          {boardType === "anonymous" ? "익명게시판" : "회원게시판"} 글쓰기
+        </h1>
+        <Link
+          href={`/community/${boardType}`}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-border text-sm text-text-secondary hover:bg-bg-secondary transition-colors"
+        >
+          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          목록
+        </Link>
+      </div>
 
-      <h1 className="text-xl font-bold mb-6">
-        {boardType === "anonymous" ? "익명게시판" : "회원게시판"} 글쓰기
-      </h1>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-border p-5 sm:p-6 space-y-4">
         {/* 카테고리 */}
         <div>
           <label className="block text-xs text-text-secondary mb-1">카테고리</label>
@@ -180,5 +191,6 @@ export default function WritePostPage() {
         </button>
       </form>
     </div>
+    </>
   );
 }

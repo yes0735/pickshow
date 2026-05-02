@@ -80,12 +80,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let performancePages: MetadataRoute.Sitemap = [];
   try {
     const performances = await prisma.performance.findMany({
-      select: { id: true, updatedAt: true },
+      select: { id: true, genre: true, updatedAt: true },
       orderBy: { updatedAt: "desc" },
       take: MAX_PERFORMANCES,
     });
     performancePages = performances.map((p) => ({
-      url: `${SITE_URL}/performance/${p.id}`,
+      url: `${SITE_URL}/genre/${p.genre}/${p.id}`,
       lastModified: p.updatedAt,
       changeFrequency: "weekly" as const,
       priority: 0.8,

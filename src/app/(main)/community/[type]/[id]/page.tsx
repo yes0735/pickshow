@@ -23,6 +23,7 @@ interface PostDetail {
   viewCount: number;
   commentCount: number;
   createdAt: string;
+  canManage: boolean;
 }
 
 interface Comment {
@@ -31,6 +32,8 @@ interface Comment {
   authorId: string | null;
   content: string;
   createdAt: string;
+  isWriter: boolean;
+  canManage: boolean;
 }
 
 // 확인 + (선택) 비밀번호 입력 모달 (삭제 및 수정 게이팅 공용)
@@ -176,6 +179,7 @@ export default function PostDetailPage() {
       setCommentPassword("");
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
       queryClient.invalidateQueries({ queryKey: ["post", postId] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
   });
 
@@ -269,6 +273,7 @@ export default function PostDetailPage() {
       setCommentDeleteError("");
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
       queryClient.invalidateQueries({ queryKey: ["post", postId] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
     onError: (err: Error) => {
       setCommentDeleteError(err.message);
@@ -341,63 +346,55 @@ export default function PostDetailPage() {
     );
   }
 
-  // 수정/삭제 가능 여부 판단
-  // - 회원 게시판: 본인 글만
-  // - 익명 게시판: 누구나 (서버가 비밀번호로 검증, 비번 없이 쓴 글은 API가 거부)
-  const isMemberAuthor =
-    session?.user?.id && post.authorId === session.user.id;
-  const canManagePost =
-    post.boardType === "anonymous" || isMemberAuthor;
+  // 수정/삭제 가능 여부: 서버에서 IP/회원 비교한 canManage 사용
+  const canManagePost = post.canManage;
   const postNeedsPassword = post.boardType === "anonymous";
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <Link
-        href={`/community/${boardType}`}
-        className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-mint-dark mb-6"
-      >
-        <svg
-          width="16"
-          height="16"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
+    <>
+    <div className="max-w-7xl mx-auto px-4 pt-6">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-text-muted mb-4">
+        <Link href="/" className="hover:text-mint-dark transition-colors">홈</Link>
+        <span>›</span>
+        <Link href={`/community/${boardType}`} className="hover:text-mint-dark transition-colors">게시판</Link>
+        <span>›</span>
+        <span className="truncate text-text-secondary">{post?.title ?? "게시글"}</span>
+      </nav>
+    </div>
+    <div className="max-w-3xl mx-auto px-4 pb-8">
+
+      {/* 목록 버튼 */}
+      <div className="flex justify-end mb-4">
+        <Link
+          href={`/community/${boardType}`}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-border text-sm text-text-secondary hover:bg-bg-secondary transition-colors"
         >
-          <path d="m15 18-6-6 6-6" />
-        </svg>
-        목록으로
-      </Link>
+          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          목록
+        </Link>
+      </div>
 
       {/* 게시글 */}
       <article className="bg-white rounded-2xl border border-border p-5 sm:p-6 mb-6">
-        {/* 카테고리 + 메타 */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-full bg-mint-light text-mint-dark flex items-center justify-center text-sm font-bold">
-              {post.authorNickname.charAt(0)}
-            </span>
-            <div>
-              <p className="text-sm font-medium">{post.authorNickname}</p>
-              <p className="text-[11px] text-text-muted">
-                {getRelativeTime(new Date(post.createdAt))} · 조회{" "}
-                {post.viewCount}
-              </p>
-            </div>
-          </div>
+        {/* 제목 */}
+        <h1 className="text-lg font-bold mb-2">{post.title}</h1>
+
+        {/* 메타: 작성자 | 날짜 | 조회수 + 수정/삭제 */}
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-xs text-text-muted">
+            {post.authorNickname} · {getRelativeTime(new Date(post.createdAt))} · 조회 {post.viewCount}
+          </p>
           {canManagePost && (
             <div className="flex items-center gap-1">
               <button
                 onClick={() => {
                   if (postNeedsPassword) {
-                    // 익명: 비밀번호 모달 → verify → edit 이동
                     setPostEditError("");
                     setPostEditModalOpen(true);
                   } else {
-                    // 회원: 즉시 edit 이동
-                    router.push(
-                      `/community/${boardType}/${postId}/edit`,
-                    );
+                    router.push(`/community/${boardType}/${postId}/edit`);
                   }
                 }}
                 className="px-3 py-1.5 rounded-lg text-xs text-text-muted hover:text-mint-dark hover:bg-mint-light transition-colors"
@@ -417,8 +414,10 @@ export default function PostDetailPage() {
           )}
         </div>
 
-        <h1 className="text-lg font-bold mb-4">{post.title}</h1>
+        {/* 구분선 */}
+        <hr className="border-border-light mb-4" />
 
+        {/* 내용 */}
         <div
           className="text-sm leading-relaxed whitespace-pre-line text-text-secondary"
           dangerouslySetInnerHTML={{
@@ -443,22 +442,24 @@ export default function PostDetailPage() {
           댓글 {commentsData?.pagination.total ?? post.commentCount}개
         </h2>
 
+        {/* 댓글 목록 */}
         {commentsData && commentsData.data.length > 0 && (
-          <div className="space-y-2.5 mb-4">
+          <div className="divide-y divide-border-light mb-4">
             {commentsData.data.map((c) => {
-              const isCommentMemberAuthor =
-                session?.user?.id && c.authorId === session.user.id;
-              const canManageComment =
-                !c.authorId || isCommentMemberAuthor; // 익명 댓글 or 본인 회원 댓글
+              const canManageComment = c.canManage;
               const commentNeedsPassword = !c.authorId;
               const isEditing = commentEditState?.id === c.id;
 
               return (
-                <div key={c.id} className="p-3.5 rounded-xl bg-bg-secondary">
+                <div key={c.id} className="py-3.5">
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-border-light text-text-muted flex items-center justify-center text-[10px] font-bold">
-                        {c.authorNickname.charAt(0)}
+                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                        c.isWriter
+                          ? "bg-mint-light text-mint-dark"
+                          : "bg-border-light text-text-muted"
+                      }`}>
+                        {c.isWriter ? "W" : c.authorNickname.charAt(0)}
                       </span>
                       <span className="text-xs font-medium">
                         {c.authorNickname}
@@ -585,7 +586,7 @@ export default function PostDetailPage() {
           </div>
         )}
 
-        {/* 댓글 작성 폼 — 비로그인은 "익명"으로 자동 등록 */}
+        {/* 댓글 작성 폼 */}
         <div className="bg-white rounded-2xl border border-border p-4">
           {!session?.user && (
             <div className="mb-3">
@@ -706,5 +707,6 @@ export default function PostDetailPage() {
         />
       )}
     </div>
+    </>
   );
 }

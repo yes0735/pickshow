@@ -16,8 +16,7 @@ interface Props {
 export default function PerformanceListItem({ performance }: Props) {
   return (
     <Link
-      href={`/performance/${performance.id}`}
-      scroll={false}
+      href={`/genre/${performance.genre}/${performance.id}`}
       className="flex gap-4 p-3 rounded-xl border border-border bg-white hover:shadow-md transition-shadow"
     >
       <div className="relative w-20 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-bg-secondary">

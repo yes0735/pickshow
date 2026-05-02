@@ -1,11 +1,15 @@
 // 찜 목록 — 로컬스토리지 기반
 "use client";
 
-import { useAllFavorites, useLocalFavorites } from "@/features/favorite/hooks";
+import { useAllFavorites } from "@/features/favorite/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { Performance } from "@/types/performance";
+import { formatDateRange, formatPriceRange, genreLabel } from "@/lib/utils";
+import StatusBadge from "@/components/performance/StatusBadge";
+import FavoriteButton from "@/components/performance/FavoriteButton";
+import MyPerfButton from "@/components/performance/MyPerfButton";
 
 export default function FavoritesPage() {
   const rawFavoriteIds = useAllFavorites();
@@ -32,7 +36,15 @@ export default function FavoritesPage() {
   });
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <>
+    <div className="max-w-7xl mx-auto px-4 pt-6">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-text-muted mb-4">
+        <Link href="/" className="hover:text-mint-dark transition-colors">홈</Link>
+        <span>›</span>
+        <span className="text-text-secondary">찜</span>
+      </nav>
+    </div>
+    <div className="max-w-3xl mx-auto px-4 pb-8">
       <h1 className="text-xl font-bold mb-6">찜한 공연</h1>
 
       {(!mounted || isLoading) && (
@@ -53,50 +65,57 @@ export default function FavoritesPage() {
       )}
 
       {performances && performances.length > 0 && (
-        <div className="space-y-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {performances.map((perf) => (
             <FavoriteItem key={perf.id} performance={perf} />
           ))}
         </div>
       )}
     </div>
+    </>
   );
 }
 
 function FavoriteItem({ performance }: { performance: Performance }) {
-  const { toggle } = useLocalFavorites(performance.id);
-
   return (
-    <div className="flex gap-4 p-3 rounded-xl border border-border bg-white">
-      <Link
-        href={`/performance/${performance.id}`}
-        className="w-20 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-bg-secondary"
-      >
-        {performance.posterUrl ? (
-          <img
-            src={performance.posterUrl}
-            alt={performance.title}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-text-muted text-[10px]">
-            포스터 없음
+    <div className="rounded-xl border border-border bg-white overflow-hidden">
+      <Link href={`/genre/${performance.genre}/${performance.id}`}>
+        <div className="aspect-[3/4] bg-bg-secondary relative overflow-hidden">
+          {performance.posterUrl ? (
+            <img
+              src={performance.posterUrl}
+              alt={performance.title}
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-text-muted text-sm">
+              포스터 없음
+            </div>
+          )}
+          <div className="absolute top-2 left-2">
+            <StatusBadge status={performance.status} />
           </div>
-        )}
+          <div className="absolute top-2 right-2 flex gap-1">
+            <MyPerfButton performanceId={performance.id} />
+            <FavoriteButton performanceId={performance.id} />
+          </div>
+        </div>
       </Link>
 
-      <div className="flex-1 min-w-0 flex flex-col justify-between">
-        <Link href={`/performance/${performance.id}`}>
-          <h3 className="font-semibold text-sm truncate hover:text-mint-dark transition-colors">
+      <div className="p-3">
+        <div className="text-[10px] text-text-muted mb-1">{genreLabel(performance.genre)}</div>
+        <Link href={`/genre/${performance.genre}/${performance.id}`}>
+          <h3 className="font-semibold text-sm leading-tight line-clamp-2 mb-1 hover:text-mint-dark transition-colors">
             {performance.title}
           </h3>
         </Link>
-        <button
-          onClick={toggle}
-          className="self-start px-3 py-1 rounded-lg border border-pink text-pink-dark text-xs hover:bg-pink-light transition-colors"
-        >
-          찜 해제
-        </button>
+        <p className="text-xs text-text-muted truncate">{performance.venue}</p>
+        <p className="text-xs text-text-muted mb-1">
+          {formatDateRange(new Date(performance.startDate), new Date(performance.endDate))}
+        </p>
+        <p className="text-sm font-medium text-pink-dark">
+          {formatPriceRange(performance.minPrice, performance.maxPrice)}
+        </p>
       </div>
     </div>
   );

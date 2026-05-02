@@ -5,9 +5,10 @@ import { getPostDetail, updatePost, deletePost } from "@/features/community/serv
 import { updatePostSchema } from "@/features/community/schema";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await auth();
   const { id } = await params;
   const post = await getPostDetail(id);
 
@@ -18,7 +19,15 @@ export async function GET(
     );
   }
 
-  return NextResponse.json({ data: post });
+  // 수정/삭제 가능 여부: 회원이면 authorId, 익명이면 IP 비교
+  const viewerIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    ?? request.headers.get("x-real-ip")
+    ?? undefined;
+  const canManage = session?.user?.id
+    ? post.authorId === session.user.id
+    : !!(viewerIp && post.ipAddress && viewerIp === post.ipAddress);
+
+  return NextResponse.json({ data: { ...post, canManage } });
 }
 
 export async function PUT(

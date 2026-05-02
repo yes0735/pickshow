@@ -97,7 +97,7 @@ export function generatePerformanceMetadata(performance: {
       ? truncate(performance.synopsis, 155)
       : `${performance.title} | ${performance.venue} | ${dateRange} | ${genreLabel} 공연 예매처 바로가기`;
 
-  const canonicalPath = `/performance/${performance.id}`;
+  const canonicalPath = `/genre/${performance.genre}/${performance.id}`;
   const ogImageUrl = `${SITE_URL}/og/performance/${performance.id}`;
 
   return {

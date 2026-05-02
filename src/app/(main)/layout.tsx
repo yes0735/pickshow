@@ -1,6 +1,7 @@
 // Design Ref: §5.1 — 메인 레이아웃 (Header + 필터 사이드바 + 콘텐츠 + Footer)
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import BackToTop from "@/components/ui/BackToTop";
 
 export default function MainLayout({
   children,
@@ -15,6 +16,7 @@ export default function MainLayout({
       <div className="flex-1">{children}</div>
       {modal}
       <Footer />
+      <BackToTop />
     </>
   );
 }
