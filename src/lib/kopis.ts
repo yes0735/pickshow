@@ -61,6 +61,7 @@ export async function fetchPerformanceList(params: {
   cpage?: number;
   rows?: number;
   shcate?: string; // 장르코드
+  shprfnm?: string; // 공연명 검색 키워드
 }): Promise<KopisPerformance[]> {
   const searchParams = new URLSearchParams({
     service: getApiKey(),
@@ -70,6 +71,7 @@ export async function fetchPerformanceList(params: {
     rows: String(params.rows ?? 100),
   });
   if (params.shcate) searchParams.set("shcate", params.shcate);
+  if (params.shprfnm) searchParams.set("shprfnm", params.shprfnm);
 
   const res = await fetch(`${KOPIS_BASE_URL}/pblprfr?${searchParams}`);
   const xml = await res.text();

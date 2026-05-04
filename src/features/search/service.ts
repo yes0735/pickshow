@@ -2,6 +2,14 @@
 import { prisma } from "@/lib/prisma";
 import type { SearchParams } from "./schema";
 import type { Prisma } from "@/generated/prisma/client";
+import {
+  fetchPerformanceList,
+  fetchPerformanceDetail,
+  parseKopisDate,
+  mapGenreToCode,
+  mapStatusToCode,
+  parsePriceRange,
+} from "@/lib/kopis";
 
 export async function searchPerformances(params: SearchParams) {
   const where: Prisma.PerformanceWhereInput = {};
@@ -85,7 +93,9 @@ export async function searchPerformances(params: SearchParams) {
   }
 
   const orderBy: Prisma.PerformanceOrderByWithRelationInput =
-    params.sort === "price_asc"
+    params.sort === "date_desc"
+      ? { startDate: "desc" }
+      : params.sort === "price_asc"
       ? { minPrice: { sort: "asc", nulls: "last" } }
       : params.sort === "price_desc"
         ? { maxPrice: { sort: "desc", nulls: "last" } }
@@ -107,10 +117,120 @@ export async function searchPerformances(params: SearchParams) {
   const hasNext = items.length > params.limit;
   const data = hasNext ? items.slice(0, params.limit) : items;
   const nextCursor = hasNext ? data[data.length - 1].id : null;
+
+  // Fallback: DB 결과 적음 + 키워드 검색 시 KOPIS API 실시간 조회 → DB 보충
+  if (total < 5 && params.q && params.q.trim().length > 0) {
+    try {
+      const kopisResults = await searchAndSaveFromKopis(params.q.trim());
+      if (kopisResults.length > 0) {
+        // KOPIS에서 새로 저장된 데이터 포함해서 DB 재조회
+        const refreshed = await prisma.performance.findMany({
+          where,
+          orderBy,
+          take: params.limit,
+        });
+        const refreshedTotal = await prisma.performance.count({ where });
+        return {
+          data: refreshed.map(serializePerformance),
+          pagination: { cursor: null, hasNext: refreshedTotal > params.limit, total: refreshedTotal },
+        };
+      }
+    } catch {
+      // KOPIS API 실패 시 기존 DB 결과 반환
+    }
+  }
+
   return {
     data: data.map(serializePerformance),
     pagination: { cursor: nextCursor, hasNext, total },
   };
+}
+
+/**
+ * KOPIS 키워드 검색 → DB upsert (fallback용)
+ * 검색 범위: 1년 전 ~ 1년 후 (과거 종료 공연도 포함)
+ */
+async function searchAndSaveFromKopis(keyword: string) {
+  const today = new Date();
+  const pastDate = new Date(today);
+  pastDate.setFullYear(pastDate.getFullYear() - 1);
+  const futureDate = new Date(today);
+  futureDate.setFullYear(futureDate.getFullYear() + 1);
+
+  const fmt = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}${m}${day}`;
+  };
+
+  const list = await fetchPerformanceList({
+    stdate: fmt(pastDate),
+    eddate: fmt(futureDate),
+    shprfnm: keyword,
+    rows: 20,
+  });
+
+  if (list.length === 0) return [];
+
+  const saved = [];
+  for (const item of list) {
+    try {
+      const detail = await fetchPerformanceDetail(item.mt20id);
+      if (!detail) continue;
+
+      const priceRange = parsePriceRange(detail.pcseguidance);
+      const ticketUrls = detail.relates.relate
+        .filter((r) => r.relateurl)
+        .map((r) => ({ name: r.relatenm, url: r.relateurl }));
+
+      const perf = await prisma.performance.upsert({
+        where: { kopisId: item.mt20id },
+        update: {
+          title: detail.prfnm,
+          genre: mapGenreToCode(detail.genrenm),
+          startDate: parseKopisDate(detail.prfpdfrom),
+          endDate: parseKopisDate(detail.prfpdto),
+          venue: detail.fcltynm,
+          venueAddress: detail.area,
+          status: mapStatusToCode(detail.prfstate),
+          posterUrl: detail.poster || null,
+          price: detail.pcseguidance,
+          minPrice: priceRange.min,
+          maxPrice: priceRange.max,
+          ageLimit: detail.prfage,
+          runtime: detail.prfruntime || null,
+          cast: detail.prfcast || null,
+          synopsis: detail.sty || null,
+          ticketUrls,
+        },
+        create: {
+          kopisId: item.mt20id,
+          title: detail.prfnm,
+          genre: mapGenreToCode(detail.genrenm),
+          startDate: parseKopisDate(detail.prfpdfrom),
+          endDate: parseKopisDate(detail.prfpdto),
+          venue: detail.fcltynm,
+          venueAddress: detail.area,
+          status: mapStatusToCode(detail.prfstate),
+          posterUrl: detail.poster || null,
+          price: detail.pcseguidance,
+          minPrice: priceRange.min,
+          maxPrice: priceRange.max,
+          ageLimit: detail.prfage,
+          runtime: detail.prfruntime || null,
+          cast: detail.prfcast || null,
+          synopsis: detail.sty || null,
+          ticketUrls,
+        },
+      });
+      saved.push(perf);
+    } catch {
+      // 개별 공연 저장 실패 시 스킵
+    }
+  }
+
+  return saved;
 }
 
 export async function getPerformanceById(id: string) {

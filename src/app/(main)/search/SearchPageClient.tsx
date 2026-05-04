@@ -50,10 +50,11 @@ export default function SearchPageClient() {
     if (urlQuery) {
       setInput(urlQuery);
       setSearchQuery(urlQuery);
-      // 필터 초기화 후 q만 설정 — 전체 공연에서 검색
-      useSearchStore.setState((state) => ({
+      // 필터 초기화 후 q만 설정 — 전체 공연에서 검색, 최신순 정렬
+      useSearchStore.setState({
         filters: { q: urlQuery },
-      }));
+        sort: "date_desc",
+      });
     }
   }, [urlQuery]);
 
@@ -77,7 +78,7 @@ export default function SearchPageClient() {
       saveRecents(next);
       setInput(v);
       setSearchQuery(v);
-      useSearchStore.setState({ filters: { q: v } });
+      useSearchStore.setState({ filters: { q: v }, sort: "date_desc" });
       router.push(`/search?q=${encodeURIComponent(v)}`);
     },
     [recents, router],
