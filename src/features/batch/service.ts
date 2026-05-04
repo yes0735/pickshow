@@ -117,13 +117,13 @@ export async function fullSyncPerformancesFromKopis(options?: {
 
 export async function syncPerformancesFromKopis() {
   const today = new Date();
-  const stdate = formatKopisDate(today); // 오늘부터
-  const eddate = formatKopisDate(addDays(today, 180)); // 180일 후까지
+  const stdate = formatKopisDate(addDays(today, -365)); // 1년 전부터
+  const eddate = formatKopisDate(addDays(today, 365)); // 1년 후까지
 
   let totalSynced = 0;
   let totalSkipped = 0;
   let page = 1;
-  const maxPages = 20;
+  const maxPages = 50;
 
   // 기존 DB의 kopisId Set 로드 (빠른 중복 체크)
   const existingKopisIds = new Set(
