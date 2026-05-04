@@ -131,12 +131,13 @@ export async function fetchPerformanceDetail(
 }
 
 export function parseKopisDate(dateStr: string): Date {
-  // KOPIS format: YYYY.MM.DD or YYYYMMDD
+  // KOPIS format: YYYY.MM.DD or YYYYMMDD → UTC 기준 날짜로 생성
+  // KOPIS 날짜는 한국 날짜이므로 UTC로 통일 (타임존 의존 방지)
   const cleaned = dateStr.replace(/\./g, "");
   const year = parseInt(cleaned.substring(0, 4));
   const month = parseInt(cleaned.substring(4, 6)) - 1;
   const day = parseInt(cleaned.substring(6, 8));
-  return new Date(year, month, day);
+  return new Date(Date.UTC(year, month, day));
 }
 
 export function mapGenreToCode(genrenm: string): string {
