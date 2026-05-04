@@ -19,7 +19,7 @@ export default function PerformanceCard({ performance }: Props) {
   return (
     <Link
       href={`/genre/${performance.genre}/${performance.id}`}
-      className="group block rounded-xl border border-border bg-white overflow-hidden hover:shadow-md transition-shadow"
+      className="group block h-full rounded-xl border border-border bg-white overflow-hidden hover:shadow-md transition-shadow flex flex-col"
     >
       <div className="aspect-[3/4] bg-bg-secondary relative overflow-hidden">
         {performance.posterUrl ? (
@@ -45,15 +45,15 @@ export default function PerformanceCard({ performance }: Props) {
         </div>
       </div>
 
-      <div className="p-3">
+      <div className="p-3 flex-1 flex flex-col">
         <h3 className="font-semibold text-sm leading-tight line-clamp-2 min-h-[2.5rem] mb-1 group-hover:text-mint-dark transition-colors">
           {performance.title}
         </h3>
-        <p className="text-xs text-text-muted mb-0.5">{performance.venue}</p>
+        <p className="text-xs text-text-muted mb-0.5 truncate">{performance.venue}</p>
         <p className="text-xs text-text-muted mb-1">
           {formatDateRange(new Date(performance.startDate), new Date(performance.endDate))}
         </p>
-        <p className="text-sm font-medium text-pink-dark">
+        <p className="text-sm font-medium text-pink-dark mt-auto">
           {formatPriceRange(performance.minPrice, performance.maxPrice)}
         </p>
       </div>

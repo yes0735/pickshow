@@ -61,6 +61,9 @@ body {
   background: var(--color-text-muted);
 }
 
+/* 하단 탭 바 safe area (아이폰 홈 인디케이터) */
+.safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
 /* 가로 스크롤바 숨김 */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
@@ -81,6 +84,14 @@ body {
 }
 .animate-slideInLeft {
   animation: slideInLeft 0.25s ease-out;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animate-slideInRight {
+  animation: slideInRight 0.25s ease-out;
 }
 
 @keyframes fadeIn {

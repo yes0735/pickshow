@@ -19,7 +19,7 @@ export default function BackToTop() {
     <button
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       aria-label="맨 위로"
-      className="fixed right-4 bottom-4 z-40 w-11 h-11 flex items-center justify-center rounded-full bg-white border border-border text-text-secondary hover:text-mint-dark transition-colors"
+      className="fixed right-4 bottom-18 md:bottom-4 z-40 w-11 h-11 flex items-center justify-center rounded-full bg-white border border-border text-text-secondary hover:text-mint-dark transition-colors"
       style={{ boxShadow: "0 4px 12px rgba(0,0,0,.12)" }}
     >
       <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

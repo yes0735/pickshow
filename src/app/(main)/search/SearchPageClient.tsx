@@ -36,20 +36,26 @@ export default function SearchPageClient() {
   const [searchQuery, setSearchQuery] = useState(urlQuery);
   const [recents, setRecents] = useState<string[]>([]);
   const setFilter = useSearchStore((s) => s.setFilter);
+  const resetFilters = useSearchStore((s) => s.resetFilters);
   const viewMode = useSearchStore((s) => s.viewMode);
 
   useEffect(() => {
     setRecents(loadRecents());
-  }, []);
+    // 검색 페이지 진입 시 기존 필터 초기화 (장르, 상태 등 제거)
+    resetFilters();
+  }, [resetFilters]);
 
   // URL q 파라미터 변경 시 검색 실행
   useEffect(() => {
     if (urlQuery) {
       setInput(urlQuery);
       setSearchQuery(urlQuery);
-      setFilter("q", urlQuery);
+      // 필터 초기화 후 q만 설정 — 전체 공연에서 검색
+      useSearchStore.setState((state) => ({
+        filters: { q: urlQuery },
+      }));
     }
-  }, [urlQuery, setFilter]);
+  }, [urlQuery]);
 
   const {
     data,
@@ -71,10 +77,10 @@ export default function SearchPageClient() {
       saveRecents(next);
       setInput(v);
       setSearchQuery(v);
-      setFilter("q", v);
+      useSearchStore.setState({ filters: { q: v } });
       router.push(`/search?q=${encodeURIComponent(v)}`);
     },
-    [recents, setFilter, router],
+    [recents, router],
   );
 
   const handleSubmit = (e: React.FormEvent) => {

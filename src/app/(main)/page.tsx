@@ -64,7 +64,7 @@ export default async function HomePage() {
             {/* 모바일: 가로 스크롤 / 데스크톱: 5열 그리드 */}
             <div className="flex gap-3 overflow-x-auto pb-2 md:grid md:grid-cols-3 lg:grid-cols-5 md:gap-4 md:overflow-visible md:pb-0 scrollbar-hide">
               {section.performances.map((p) => (
-                <div key={p.id} className="w-40 shrink-0 md:w-auto">
+                <div key={p.id} className="w-40 shrink-0 md:w-auto h-auto self-stretch">
                   <PerformanceCard performance={p} />
                 </div>
               ))}

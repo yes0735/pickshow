@@ -1,5 +1,4 @@
-// Header 1단 구조 — 로고 + 카테고리 + 유틸리티 nav
-// 모바일: 햄버거 드로어
+// Header — 모바일: 로고 + 햄버거(카테고리), 데스크톱: 로고 + 카테고리 + nav
 "use client";
 
 import { useState, useEffect } from "react";
@@ -57,24 +56,13 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-border">
       <div className="max-w-7xl mx-auto px-4 h-12 flex items-center gap-4">
-        {/* 모바일 햄버거 */}
-        <button
-          onClick={() => setDrawer(true)}
-          aria-label="카테고리 메뉴 열기"
-          className="md:hidden text-text-secondary hover:text-mint-dark transition-colors shrink-0"
-        >
-          <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-
         {/* 로고 */}
         <Link href="/" className="shrink-0 text-xl font-bold tracking-tight">
           <span className="text-mint-dark">Pick</span>
           <span className="text-pink-dark">Show</span>
         </Link>
 
-        {/* 카테고리 탭 (데스크톱 md+, 로고 옆) */}
+        {/* 카테고리 탭 (데스크톱 md+) */}
         <nav className="hidden md:flex items-center gap-1 overflow-x-auto shrink min-w-0" style={{ whiteSpace: "nowrap" }}>
           {GENRES.map((g) => {
             const active = isActiveGenre(g.slug);
@@ -97,8 +85,8 @@ export default function Header() {
 
         <div className="flex-1" />
 
-        {/* 유틸리티 nav */}
-        <nav className="flex items-center gap-4 shrink-0" style={{ whiteSpace: "nowrap" }}>
+        {/* 유틸리티 nav (데스크톱만) */}
+        <nav className="hidden md:flex items-center gap-4 shrink-0" style={{ whiteSpace: "nowrap" }}>
           <Link href="/search" aria-label="검색" className="text-text-secondary hover:text-mint-dark transition-colors">
             <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <circle cx="11" cy="11" r="8" />
@@ -109,18 +97,27 @@ export default function Header() {
           <Link href="/my/favorites" className={navLinkClass("/my/favorites")}>찜</Link>
           <Link href="/my/performances" className={navLinkClass("/my/performances")}>내공연</Link>
         </nav>
+
+        {/* 모바일 햄버거 (카테고리 전용) */}
+        <button
+          onClick={() => setDrawer(true)}
+          aria-label="카테고리 메뉴"
+          className="md:hidden text-text-secondary hover:text-mint-dark transition-colors shrink-0"
+        >
+          <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
       </div>
 
-      {/* 모바일 드로어 */}
+      {/* 모바일 카테고리 드로어 */}
       {drawer && (
         <>
           <div
             onClick={() => setDrawer(false)}
             className="fixed inset-0 bg-black/50 z-[60] animate-fadeIn"
           />
-          <aside
-            className="fixed top-0 left-0 bottom-0 w-[280px] bg-white z-[61] flex flex-col animate-slideInLeft"
-          >
+          <aside className="fixed top-0 right-0 bottom-0 w-[240px] bg-white z-[61] flex flex-col animate-slideInRight">
             <div className="flex items-center justify-between border-b border-border px-4 h-12">
               <span className="text-sm font-semibold">카테고리</span>
               <button
